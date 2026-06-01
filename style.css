@@ -810,6 +810,36 @@ body.projector .qr-container:hover {
   font-weight: 400;
 }
 
+.class-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.class-picker-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+  background: #f0f2f5;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.class-picker-btn:hover {
+  border-color: #1976D2;
+  background: #e3f2fd;
+  transform: translateY(-1px);
+}
+
+.class-picker-btn:active {
+  transform: translateY(0);
+}
+
 /* PIN display on projector */
 .pin-display {
   display: flex;

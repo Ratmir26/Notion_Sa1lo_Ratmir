@@ -10,10 +10,40 @@ if (urlSession) {
 }
 
 if (!classId) {
-  document.addEventListener('DOMContentLoaded', () => {
-    const el = document.getElementById('loadingState');
-    if (el) el.textContent = 'Ошибка: не указан класс (?class=...)';
-  });
+  document.addEventListener('DOMContentLoaded', showClassPicker);
+}
+
+const RESERVED_KEYS = ['question', 'options', 'totalVotes', 'voters', 'sessionId', 'timerEnd', 'pin'];
+
+async function showClassPicker() {
+  document.getElementById('loadingState')?.classList.add('hidden');
+  const container = document.getElementById('classPickerList');
+  const overlay = document.getElementById('classPickerOverlay');
+  try {
+    const snap = await firebase.database().ref('poll').once('value');
+    const data = snap.val();
+    const keys = data ? Object.keys(data).filter(k => !RESERVED_KEYS.includes(k)) : [];
+    if (keys.length === 0) {
+      container.innerHTML = '<div style="color:#999;padding:20px;">Нет доступных классов. Обратитесь к учителю.</div>';
+      overlay?.classList.add('show');
+      return;
+    }
+    container.innerHTML = keys.map(k =>
+      `<button class="class-picker-btn" data-class="${k}">${k}</button>`
+    ).join('');
+    overlay?.classList.add('show');
+    container.querySelectorAll('.class-picker-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const c = btn.dataset.class;
+        const params = new URLSearchParams(window.location.search);
+        params.set('class', c);
+        window.location.search = params.toString();
+      });
+    });
+  } catch (e) {
+    container.innerHTML = '<div style="color:#c62828;padding:20px;">Ошибка загрузки классов.</div>';
+    overlay?.classList.add('show');
+  }
 }
 
 let hasVotedLocally = localStorage.getItem('voted') === 'true';
