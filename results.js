@@ -241,12 +241,14 @@ function subscribeClass(classId) {
   });
 }
 
+const RESERVED_KEYS = ['question', 'options', 'totalVotes', 'voters', 'sessionId', 'timerEnd', 'pin'];
+
 function loadClassList() {
   rootRef.once('value', snap => {
     const data = snap.val();
     const select = document.getElementById('classSelect');
     if (!select) return;
-    const keys = data ? Object.keys(data) : [];
+    const keys = data ? Object.keys(data).filter(k => !RESERVED_KEYS.includes(k)) : [];
     select.innerHTML = '<option value="">— Выберите класс —</option>' + keys.map(k => `<option value="${k}">${k}</option>`).join('');
   });
 }
