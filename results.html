@@ -7,7 +7,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#1a1a2e">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body class="projector">
   <div class="container">
@@ -23,6 +23,7 @@
       <div class="total-votes">
         Всего проголосовало: <span id="totalVotes">0</span>
       </div>
+      <div id="pinDisplay" class="pin-display" style="display:none">🔑 PIN: <span id="pinCode"></span></div>
 
       <div class="results-panel">
         <div id="qrContainer" class="qr-container"></div>
@@ -65,7 +66,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="firebase-config.js?v=5"></script>
-  <script src="results.js?v=5"></script>
+  <script src="firebase-config.js?v=6"></script>
+  <script src="results.js?v=6"></script>
 </body>
 </html>

@@ -202,6 +202,15 @@ document.addEventListener('DOMContentLoaded', () => {
     timerEndCache = data.timerEnd ? new Date(data.timerEnd).getTime() : null;
     updateTimerDisplay();
 
+    const pinEl = document.getElementById('pinDisplay');
+    const pinCodeEl = document.getElementById('pinCode');
+    if (data.pin) {
+      if (pinCodeEl) pinCodeEl.textContent = data.pin;
+      if (pinEl) pinEl.style.display = 'flex';
+    } else {
+      if (pinEl) pinEl.style.display = 'none';
+    }
+
     const sessionId = data.sessionId || null;
     if (sessionId !== currentSessionId) {
       currentSessionId = sessionId;

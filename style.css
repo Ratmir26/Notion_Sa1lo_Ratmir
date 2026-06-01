@@ -755,3 +755,28 @@ body.projector .qr-container:hover {
   font-size: 14px;
   font-weight: 400;
 }
+
+/* PIN display on projector */
+.pin-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffd54f;
+  background: rgba(255, 213, 79, 0.1);
+  padding: 8px 24px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 213, 79, 0.3);
+}
+
+.pin-display span {
+  letter-spacing: 6px;
+}
+
+@media (max-width: 480px) {
+  .pin-display {
+    font-size: 22px;
+    padding: 6px 16px;
+  }
+}

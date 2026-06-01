@@ -9,7 +9,6 @@
 | Голосование (телефон) | https://school-vote-teal.vercel.app/ |
 | Результаты (проектор) | https://school-vote-teal.vercel.app/results.html |
 | Управление (учитель) | https://school-vote-teal.vercel.app/seed.html |
-| Firebase Console | https://console.firebase.google.com/project/school-vote-ecbcd/database |
 | GitHub | https://github.com/Ratmir26/Notion_Sa1lo_Ratmir |
 
 ## Команды

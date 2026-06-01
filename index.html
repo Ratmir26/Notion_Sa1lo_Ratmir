@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#1a1a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Голосование">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
   <div class="container">
@@ -45,10 +45,21 @@
     </div>
   </div>
 
+  <div id="pinOverlay" class="name-overlay">
+    <div class="name-card">
+      <div class="name-card-icon">🔑</div>
+      <h2>Введи PIN-код</h2>
+      <p>PIN-код показывается на проекторе</p>
+      <input type="text" id="pinInput" maxlength="6" placeholder="PIN" autocomplete="off" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:8px;font-weight:700;font-size:24px;">
+      <button id="pinSubmitBtn">Подтвердить</button>
+      <div id="pinError" class="name-error"></div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
-  <script src="firebase-config.js?v=5"></script>
-  <script src="app.js?v=5"></script>
+  <script src="firebase-config.js?v=6"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

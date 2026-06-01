@@ -1,5 +1,6 @@
 const SESSION_KEY = 'session_id';
 const NAME_KEY = 'voter_name';
+const PIN_VERIFIED_PREFIX = 'pin_ok_';
 
 const urlParams = new URLSearchParams(window.location.search);
 const urlSession = urlParams.get('s');
@@ -12,6 +13,7 @@ let voterName = localStorage.getItem(NAME_KEY) || '';
 let userVoteOptionId = null;
 let currentData = null;
 let timerEndCache = null;
+let currentPin = null;
 let pollRef = null;
 
 function getFingerprint() {
@@ -201,6 +203,26 @@ function hideNameInput() {
   document.getElementById('nameOverlay')?.classList.remove('show');
 }
 
+function showPinInput() {
+  document.getElementById('loadingState')?.classList.add('hidden');
+  document.getElementById('pinOverlay')?.classList.add('show');
+  document.getElementById('pinInput')?.focus();
+}
+
+function hidePinInput() {
+  document.getElementById('pinOverlay')?.classList.remove('show');
+}
+
+function showPinError(msg) {
+  const el = document.getElementById('pinError');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+function hidePinError() {
+  const el = document.getElementById('pinError');
+  if (el) { el.style.display = 'none'; }
+}
+
 function showNameError(msg) {
   const el = document.getElementById('nameError');
   if (el) { el.textContent = msg; el.style.display = 'block'; }
@@ -238,6 +260,12 @@ function findOptionText(optionId, data) {
   return opt ? opt.text : '';
 }
 
+function isPinVerified() {
+  const fbSessionId = currentData ? currentData.sessionId : null;
+  if (!fbSessionId) return true;
+  return localStorage.getItem(PIN_VERIFIED_PREFIX + fbSessionId) === 'true';
+}
+
 function initVoting(data) {
   currentData = data;
   document.getElementById('loadingState')?.classList.add('hidden');
@@ -262,6 +290,11 @@ function initVoting(data) {
     return;
   }
 
+  if (currentPin && !isPinVerified()) {
+    showPinInput();
+    return;
+  }
+
   showVotingAfterName();
 }
 
@@ -278,6 +311,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!data) return;
 
       timerEndCache = data.timerEnd ? new Date(data.timerEnd).getTime() : null;
+      currentPin = data.pin || null;
       const fbSessionId = data.sessionId || null;
 
       if (!initialized) {
@@ -354,5 +388,25 @@ document.getElementById('nameInput')?.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     e.preventDefault();
     document.getElementById('nameSubmitBtn')?.click();
+  }
+});
+
+document.getElementById('pinSubmitBtn')?.addEventListener('click', () => {
+  const input = document.getElementById('pinInput');
+  const pin = input.value.trim();
+  if (!pin) { showPinError('Введите PIN'); return; }
+  if (pin !== currentPin) { showPinError('Неверный PIN'); return; }
+  hidePinError();
+  const fbSessionId = currentData ? currentData.sessionId : null;
+  if (fbSessionId) localStorage.setItem(PIN_VERIFIED_PREFIX + fbSessionId, 'true');
+  input.value = '';
+  hidePinInput();
+  showVotingAfterName();
+});
+
+document.getElementById('pinInput')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.getElementById('pinSubmitBtn')?.click();
   }
 });

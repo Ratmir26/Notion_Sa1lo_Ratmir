@@ -33,7 +33,7 @@
 </head>
 <body>
   <h1>🌱 Управление голосованием</h1>
-  <p>Создание данных, таймер, сброс голосов.</p>
+  <p>Создание данных, таймер, PIN-код, управление сессиями.</p>
 
   <div class="card">
     <h3>📦 1. Создать / пересоздать данные</h3>
@@ -56,7 +56,19 @@
   </div>
 
   <div class="card">
-    <h3>🎬 3. Управление голосованием</h3>
+    <h3>🔑 3. PIN-код доступа</h3>
+    <p style="font-size:14px;color:#666;">Установите PIN — ученики введут его перед голосованием. Показывается на проекторе.</p>
+    <div class="flex">
+      <input type="text" id="pinInput" maxlength="6" placeholder="Например 1234" style="width:140px;padding:10px;font-size:18px;font-weight:700;text-align:center;border:2px solid #ddd;border-radius:8px;letter-spacing:4px;" inputmode="numeric" pattern="[0-9]*">
+      <button id="setPinBtn" class="btn-primary">🔑 Установить PIN</button>
+      <button id="clearPinBtn" class="btn-sm" style="background:#999;color:white;">Сбросить PIN</button>
+    </div>
+    <div id="currentPin" class="current-timer"></div>
+    <div id="pinStatus" class="status"></div>
+  </div>
+
+  <div class="card">
+    <h3>🎬 4. Управление голосованием</h3>
     <p style="font-size:14px;color:#666;">Нажмите «Начать голосование» — создастся новая сессия, обнулятся голоса. QR-код на странице результатов обновится автоматически.</p>
     <div class="flex" style="margin-bottom:12px;">
       <button id="startSessionBtn" class="btn-success">🎬 Начать голосование</button>
@@ -85,7 +97,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  <script src="firebase-config.js?v=5"></script>
+  <script src="firebase-config.js?v=6"></script>
   <script>
     const pollRef = firebase.database().ref('poll');
 
@@ -109,6 +121,7 @@
         status.innerHTML = '<span class="success">✅ Данные успешно созданы!</span>';
         btn.textContent = '✅ Готово';
         loadCurrentTimer();
+        loadCurrentPin();
       } catch (err) {
         status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
         btn.disabled = false;
@@ -172,9 +185,12 @@
         await pollRef.update({ options: resetOptions, totalVotes: 0, voters: {} });
         await pollRef.child('sessionId').remove();
         await pollRef.child('timerEnd').remove();
+        await pollRef.child('pin').remove();
         document.getElementById('currentTimer').style.display = 'none';
+        document.getElementById('currentPin').style.display = 'none';
         status.innerHTML = '<span class="success">✅ Все голоса сброшены, сессия удалена</span>';
         loadCurrentSession();
+        loadCurrentPin();
       } catch (err) {
         status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
       }
@@ -208,8 +224,48 @@
       } catch (e) { el.style.display = 'none'; }
     }
 
+    async function loadCurrentPin() {
+      const el = document.getElementById('currentPin');
+      try {
+        const snap = await pollRef.child('pin').once('value');
+        const val = snap.val();
+        if (val) {
+          el.textContent = `🔑 Текущий PIN: ${val}`;
+          el.style.display = 'block';
+        } else {
+          el.style.display = 'none';
+        }
+      } catch (e) { el.style.display = 'none'; }
+    }
+
+    document.getElementById('setPinBtn').addEventListener('click', async () => {
+      const input = document.getElementById('pinInput');
+      const status = document.getElementById('pinStatus');
+      const pin = input.value.trim();
+      if (!pin) { status.innerHTML = '<span class="error">❌ Введите PIN</span>'; return; }
+      try {
+        await pollRef.child('pin').set(pin);
+        status.innerHTML = '<span class="success">✅ PIN установлен</span>';
+        loadCurrentPin();
+      } catch (err) {
+        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
+      }
+    });
+
+    document.getElementById('clearPinBtn').addEventListener('click', async () => {
+      const status = document.getElementById('pinStatus');
+      try {
+        await pollRef.child('pin').remove();
+        status.innerHTML = '<span class="success">✅ PIN сброшен</span>';
+        document.getElementById('currentPin').style.display = 'none';
+      } catch (err) {
+        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
+      }
+    });
+
     loadCurrentTimer();
     loadCurrentSession();
+    loadCurrentPin();
 
     const now = new Date();
     now.setHours(now.getHours() + 2);
