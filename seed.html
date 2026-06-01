@@ -33,16 +33,34 @@
 </head>
 <body>
   <h1>🌱 Управление голосованием</h1>
-  <p>Создание данных, таймер, PIN-код, управление сессиями.</p>
+  <p>Классы, данные, таймер, PIN-код, сессии.</p>
 
   <div class="card">
+    <h3>🏫 Мои классы</h3>
+    <p style="font-size:14px;color:#666;">Добавьте класс (например 9А) и выберите его для настройки.</p>
+    <div class="flex">
+      <input type="text" id="newClassInput" maxlength="10" placeholder="Например 9А" style="width:120px;padding:10px;font-size:16px;font-weight:600;text-align:center;border:2px solid #ddd;border-radius:8px;">
+      <button id="addClassBtn" class="btn-success">➕ Добавить класс</button>
+    </div>
+    <div id="classList" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+    <div id="classStatus" class="status"></div>
+  </div>
+
+  <div class="card" id="classSettings" style="display:none;">
+    <div class="flex" style="margin-bottom:16px;">
+      <span style="font-weight:700;font-size:18px;">Класс: <span id="currentClassLabel"></span></span>
+      <button id="deleteClassBtn" class="btn-sm btn-danger">🗑 Удалить класс</button>
+    </div>
+
+    <hr style="margin:16px 0;">
+
     <h3>📦 1. Создать / пересоздать данные</h3>
     <p style="font-size:14px;color:#666;">Сбросит всё: варианты, голоса, таймер, избирателей.</p>
     <button id="seedBtn" class="btn-primary">📦 Создать данные</button>
     <div id="seedStatus" class="status"></div>
-  </div>
 
-  <div class="card">
+    <hr style="margin:16px 0;">
+
     <h3>⏱ 2. Таймер голосования</h3>
     <p style="font-size:14px;color:#666;">Установите дату и время окончания. Все ученики увидят обратный отсчёт. После таймера голосование блокируется.</p>
     <label for="timerInput">Время окончания:</label>
@@ -53,9 +71,9 @@
     </div>
     <div id="timerStatus" class="status"></div>
     <div id="currentTimer" class="current-timer"></div>
-  </div>
 
-  <div class="card">
+    <hr style="margin:16px 0;">
+
     <h3>🔑 3. PIN-код доступа</h3>
     <p style="font-size:14px;color:#666;">Установите PIN — ученики введут его перед голосованием. Показывается на проекторе.</p>
     <div class="flex">
@@ -65,9 +83,9 @@
     </div>
     <div id="currentPin" class="current-timer"></div>
     <div id="pinStatus" class="status"></div>
-  </div>
 
-  <div class="card">
+    <hr style="margin:16px 0;">
+
     <h3>🎬 4. Управление голосованием</h3>
     <p style="font-size:14px;color:#666;">Нажмите «Начать голосование» — создастся новая сессия, обнулятся голоса. QR-код на странице результатов обновится автоматически.</p>
     <div class="flex" style="margin-bottom:12px;">
@@ -78,28 +96,148 @@
     <div id="sessionStatus" class="status"></div>
   </div>
 
-  <hr>
-  <h3>Текущая структура в Firebase:</h3>
-  <pre>{
-  "poll": {
-    "question": "Какой формат выпускного?",
-    "options": [
-      { "id": 0, "text": "Ресторан", "votes": 0 },
-      { "id": 1, "text": "Пикник в парке", "votes": 0 },
-      { "id": 2, "text": "Квест по городу", "votes": 0 },
-      { "id": 3, "text": "Кинотеатр + пицца", "votes": 0 }
-    ],
-    "totalVotes": 0,
-    "voters": {},
-    "timerEnd": "2026-06-01T15:00"
-  }
-}</pre>
-
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  <script src="firebase-config.js?v=6"></script>
+  <script src="firebase-config.js?v=7"></script>
   <script>
-    const pollRef = firebase.database().ref('poll');
+    const rootRef = firebase.database().ref('poll');
+    let selectedClass = null;
+
+    function defaultPollData() {
+      return {
+        question: "Какой формат выпускного?",
+        options: [
+          { id: 0, text: "Ресторан", votes: 0 },
+          { id: 1, text: "Пикник в парке", votes: 0 },
+          { id: 2, text: "Квест по городу", votes: 0 },
+          { id: 3, text: "Кинотеатр + пицца", votes: 0 }
+        ],
+        totalVotes: 0,
+        voters: {}
+      };
+    }
+
+    function getClassRef() {
+      if (!selectedClass) throw new Error('Класс не выбран');
+      return rootRef.child(selectedClass);
+    }
+
+    async function loadClassList() {
+      const container = document.getElementById('classList');
+      try {
+        const snap = await rootRef.once('value');
+        const data = snap.val();
+        const keys = data ? Object.keys(data) : [];
+        if (keys.length === 0) {
+          container.innerHTML = '<span style="color:#999;font-size:14px;">Классов пока нет</span>';
+          document.getElementById('classSettings').style.display = 'none';
+          selectedClass = null;
+          return;
+        }
+        container.innerHTML = keys.map(k =>
+          `<button class="class-chip ${selectedClass === k ? 'class-chip-active' : ''}" data-class="${k}">${k}</button>`
+        ).join('');
+        container.querySelectorAll('.class-chip').forEach(btn => {
+          btn.addEventListener('click', () => selectClass(btn.dataset.class));
+        });
+        if (!selectedClass || !keys.includes(selectedClass)) {
+          selectClass(keys[0]);
+        } else {
+          selectClass(selectedClass);
+        }
+      } catch (e) {
+        container.innerHTML = '<span style="color:#c62828;">Ошибка загрузки</span>';
+      }
+    }
+
+    function selectClass(classId) {
+      selectedClass = classId;
+      document.getElementById('currentClassLabel').textContent = classId;
+      document.getElementById('classSettings').style.display = 'block';
+      document.querySelectorAll('.class-chip').forEach(el => {
+        el.classList.toggle('class-chip-active', el.dataset.class === classId);
+      });
+      loadCurrentData();
+    }
+
+    async function loadCurrentData() {
+      if (!selectedClass) return;
+      try {
+        const snap = await getClassRef().once('value');
+        const data = snap.val();
+
+        const timerEl = document.getElementById('currentTimer');
+        if (data && data.timerEnd) {
+          timerEl.textContent = `⏱ Таймер: до ${new Date(data.timerEnd).toLocaleString('ru-RU')}`;
+          timerEl.style.display = 'block';
+        } else {
+          timerEl.style.display = 'none';
+        }
+
+        const pinEl = document.getElementById('currentPin');
+        if (data && data.pin) {
+          pinEl.textContent = `🔑 PIN: ${data.pin}`;
+          pinEl.style.display = 'block';
+        } else {
+          pinEl.style.display = 'none';
+        }
+
+        const sessionEl = document.getElementById('currentSession');
+        if (data && data.sessionId) {
+          sessionEl.textContent = `🎬 Сессия: ${data.sessionId}`;
+          sessionEl.style.display = 'block';
+        } else {
+          sessionEl.style.display = 'none';
+        }
+
+        document.getElementById('seedStatus').innerHTML = '';
+        document.getElementById('timerStatus').innerHTML = '';
+        document.getElementById('pinStatus').innerHTML = '';
+        document.getElementById('sessionStatus').innerHTML = '';
+        const seedBtn = document.getElementById('seedBtn');
+        seedBtn.disabled = false;
+        seedBtn.textContent = '📦 Создать данные';
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    document.getElementById('addClassBtn').addEventListener('click', async () => {
+      const input = document.getElementById('newClassInput');
+      const status = document.getElementById('classStatus');
+      const name = input.value.trim();
+      if (!name) { status.innerHTML = '<span class="error">❌ Введите название класса</span>'; return; }
+      try {
+        const snap = await rootRef.child(name).once('value');
+        if (snap.exists()) { status.innerHTML = '<span class="error">❌ Такой класс уже существует</span>'; return; }
+        await rootRef.child(name).set(defaultPollData());
+        status.innerHTML = '<span class="success">✅ Класс добавлен</span>';
+        input.value = '';
+        await loadClassList();
+      } catch (err) {
+        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
+      }
+    });
+
+    document.getElementById('newClassInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('addClassBtn').click();
+      }
+    });
+
+    document.getElementById('deleteClassBtn').addEventListener('click', async () => {
+      if (!selectedClass) return;
+      if (!confirm(`Удалить класс ${selectedClass} и все его данные?`)) return;
+      if (!confirm('Точно? Это удалит всех избирателей. Отменить нельзя.')) return;
+      try {
+        await rootRef.child(selectedClass).remove();
+        selectedClass = null;
+        await loadClassList();
+      } catch (err) {
+        document.getElementById('classStatus').innerHTML = `<span class="error">❌ ${err.message}</span>`;
+      }
+    });
 
     document.getElementById('seedBtn').addEventListener('click', async () => {
       const btn = document.getElementById('seedBtn');
@@ -107,21 +245,10 @@
       btn.disabled = true;
       status.innerHTML = '⏳ Создание данных...';
       try {
-        await pollRef.set({
-          question: "Какой формат выпускного?",
-          options: [
-            { id: 0, text: "Ресторан", votes: 0 },
-            { id: 1, text: "Пикник в парке", votes: 0 },
-            { id: 2, text: "Квест по городу", votes: 0 },
-            { id: 3, text: "Кинотеатр + пицца", votes: 0 }
-          ],
-          totalVotes: 0,
-          voters: {}
-        });
+        await getClassRef().set(defaultPollData());
         status.innerHTML = '<span class="success">✅ Данные успешно созданы!</span>';
         btn.textContent = '✅ Готово';
-        loadCurrentTimer();
-        loadCurrentPin();
+        loadCurrentData();
       } catch (err) {
         status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
         btn.disabled = false;
@@ -133,9 +260,9 @@
       const status = document.getElementById('timerStatus');
       if (!input.value) { status.innerHTML = '<span class="error">❌ Выберите дату и время</span>'; return; }
       try {
-        await pollRef.child('timerEnd').set(input.value);
+        await getClassRef().child('timerEnd').set(input.value);
         status.innerHTML = '<span class="success">✅ Таймер установлен</span>';
-        loadCurrentTimer();
+        loadCurrentData();
       } catch (err) {
         status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
       }
@@ -144,9 +271,34 @@
     document.getElementById('clearTimerBtn').addEventListener('click', async () => {
       const status = document.getElementById('timerStatus');
       try {
-        await pollRef.child('timerEnd').remove();
+        await getClassRef().child('timerEnd').remove();
         status.innerHTML = '<span class="success">✅ Таймер удалён</span>';
         document.getElementById('currentTimer').style.display = 'none';
+      } catch (err) {
+        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
+      }
+    });
+
+    document.getElementById('setPinBtn').addEventListener('click', async () => {
+      const input = document.getElementById('pinInput');
+      const status = document.getElementById('pinStatus');
+      const pin = input.value.trim();
+      if (!pin) { status.innerHTML = '<span class="error">❌ Введите PIN</span>'; return; }
+      try {
+        await getClassRef().child('pin').set(pin);
+        status.innerHTML = '<span class="success">✅ PIN установлен</span>';
+        loadCurrentData();
+      } catch (err) {
+        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
+      }
+    });
+
+    document.getElementById('clearPinBtn').addEventListener('click', async () => {
+      const status = document.getElementById('pinStatus');
+      try {
+        await getClassRef().child('pin').remove();
+        status.innerHTML = '<span class="success">✅ PIN сброшен</span>';
+        document.getElementById('currentPin').style.display = 'none';
       } catch (err) {
         status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
       }
@@ -156,17 +308,16 @@
       const status = document.getElementById('sessionStatus');
       status.innerHTML = '⏳ Запуск голосования...';
       try {
-        const snap = await pollRef.once('value');
+        const snap = await getClassRef().once('value');
         const data = snap.val();
         if (!data || !data.options) throw new Error('Нет данных. Сначала создайте данные.');
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let sid = 's_';
         for (let i = 0; i < 5; i++) sid += chars[Math.floor(Math.random() * chars.length)];
         const resetOptions = data.options.map(o => ({ id: o.id, text: o.text, votes: 0 }));
-        await pollRef.update({ options: resetOptions, totalVotes: 0, voters: {}, sessionId: sid });
+        await getClassRef().update({ options: resetOptions, totalVotes: 0, voters: {}, sessionId: sid });
         status.innerHTML = `<span class="success">✅ Голосование запущено! Сессия: <strong>${sid}</strong></span>`;
-        loadCurrentSession();
-        loadCurrentTimer();
+        loadCurrentData();
       } catch (err) {
         status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
       }
@@ -174,102 +325,32 @@
 
     document.getElementById('resetBtn').addEventListener('click', async () => {
       const status = document.getElementById('sessionStatus');
-      if (!confirm('Вы уверены? Все голоса будут сброшены. Вопрос и варианты останутся.')) return;
+      if (!confirm('Все голоса будут сброшены. Продолжить?')) return;
       if (!confirm('Точно? Это удалит всех избирателей. Отменить нельзя.')) return;
       status.innerHTML = '⏳ Сброс...';
       try {
-        const snap = await pollRef.once('value');
+        const snap = await getClassRef().once('value');
         const data = snap.val();
         if (!data || !data.options) throw new Error('Нет данных. Сначала создайте данные.');
         const resetOptions = data.options.map(o => ({ id: o.id, text: o.text, votes: 0 }));
-        await pollRef.update({ options: resetOptions, totalVotes: 0, voters: {} });
-        await pollRef.child('sessionId').remove();
-        await pollRef.child('timerEnd').remove();
-        await pollRef.child('pin').remove();
+        await getClassRef().update({ options: resetOptions, totalVotes: 0, voters: {} });
+        await getClassRef().child('sessionId').remove();
+        await getClassRef().child('timerEnd').remove();
+        await getClassRef().child('pin').remove();
         document.getElementById('currentTimer').style.display = 'none';
         document.getElementById('currentPin').style.display = 'none';
         status.innerHTML = '<span class="success">✅ Все голоса сброшены, сессия удалена</span>';
-        loadCurrentSession();
-        loadCurrentPin();
+        loadCurrentData();
       } catch (err) {
         status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
       }
     });
-
-    async function loadCurrentSession() {
-      const el = document.getElementById('currentSession');
-      try {
-        const snap = await pollRef.child('sessionId').once('value');
-        const val = snap.val();
-        if (val) {
-          el.textContent = `🎬 Текущая сессия: ${val}`;
-          el.style.display = 'block';
-        } else {
-          el.style.display = 'none';
-        }
-      } catch (e) { el.style.display = 'none'; }
-    }
-
-    async function loadCurrentTimer() {
-      const el = document.getElementById('currentTimer');
-      try {
-        const snap = await pollRef.child('timerEnd').once('value');
-        const val = snap.val();
-        if (val) {
-          el.textContent = `⏱ Текущий таймер: до ${new Date(val).toLocaleString('ru-RU')}`;
-          el.style.display = 'block';
-        } else {
-          el.style.display = 'none';
-        }
-      } catch (e) { el.style.display = 'none'; }
-    }
-
-    async function loadCurrentPin() {
-      const el = document.getElementById('currentPin');
-      try {
-        const snap = await pollRef.child('pin').once('value');
-        const val = snap.val();
-        if (val) {
-          el.textContent = `🔑 Текущий PIN: ${val}`;
-          el.style.display = 'block';
-        } else {
-          el.style.display = 'none';
-        }
-      } catch (e) { el.style.display = 'none'; }
-    }
-
-    document.getElementById('setPinBtn').addEventListener('click', async () => {
-      const input = document.getElementById('pinInput');
-      const status = document.getElementById('pinStatus');
-      const pin = input.value.trim();
-      if (!pin) { status.innerHTML = '<span class="error">❌ Введите PIN</span>'; return; }
-      try {
-        await pollRef.child('pin').set(pin);
-        status.innerHTML = '<span class="success">✅ PIN установлен</span>';
-        loadCurrentPin();
-      } catch (err) {
-        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
-      }
-    });
-
-    document.getElementById('clearPinBtn').addEventListener('click', async () => {
-      const status = document.getElementById('pinStatus');
-      try {
-        await pollRef.child('pin').remove();
-        status.innerHTML = '<span class="success">✅ PIN сброшен</span>';
-        document.getElementById('currentPin').style.display = 'none';
-      } catch (err) {
-        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
-      }
-    });
-
-    loadCurrentTimer();
-    loadCurrentSession();
-    loadCurrentPin();
 
     const now = new Date();
     now.setHours(now.getHours() + 2);
     document.getElementById('timerInput').value = now.toISOString().slice(0, 16);
+
+    loadClassList();
   </script>
 </body>
 </html>

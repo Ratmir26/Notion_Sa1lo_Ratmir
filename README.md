@@ -70,7 +70,9 @@
 
 ### Firebase (Realtime Database, compat SDK 9.22.0 через CDN)
 
-- Путь: `poll/question`, `poll/options` (массив `{id,text,votes}`), `poll/totalVotes`, `poll/voters/{fingerprint}`, `poll/sessionId`, `poll/timerEnd`
+- Структура: `poll/{classId}/question`, `poll/{classId}/options`, `poll/{classId}/totalVotes`, `poll/{classId}/voters/{fingerprint}`, `poll/{classId}/sessionId`, `poll/{classId}/timerEnd`, `poll/{classId}/pin`
+- Поддержка нескольких классов: 9А, 9Б, 9В и т.д. — каждый класс живёт в своей ноде
+- `?class=9А` в URL страницы голосования. QR-код на проекторе содержит класс
 - `poll/options` — 0-индексированный массив, а не объект (Firebase не конвертит числовые ключи в разреженный массив)
 - `getOptionsArray()` — читает `data.options` как массив или объект, нормализует
 

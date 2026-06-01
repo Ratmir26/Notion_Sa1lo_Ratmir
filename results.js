@@ -3,8 +3,10 @@ let timerEndCache = null;
 let timerInterval = null;
 let qrCodeInstance = null;
 let currentSessionId = null;
+let selectedClass = null;
+let currentListener = null;
 
-const pollRef = firebase.database().ref(POLL_ID);
+const rootRef = firebase.database().ref('poll');
 
 function getOptionsArray(data) {
   if (!data || !data.options) return [];
@@ -101,11 +103,14 @@ function updateTimerDisplay() {
   }
 }
 
-function generateQR(sessionId) {
+function generateQR(classId, sessionId) {
   const container = document.getElementById('qrContainer');
   if (!container) return;
   const baseUrl = window.location.origin.replace('/results.html', '') + '/index.html';
-  const url = sessionId ? `${baseUrl}?s=${sessionId}` : baseUrl;
+  const params = [];
+  if (classId) params.push(`class=${encodeURIComponent(classId)}`);
+  if (sessionId) params.push(`s=${sessionId}`);
+  const url = params.length ? `${baseUrl}?${params.join('&')}` : baseUrl;
 
   if (qrCodeInstance) {
     qrCodeInstance.clear();
@@ -180,10 +185,17 @@ async function exportPNG() {
   link.click();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  let firstLoad = true;
+function subscribeClass(classId) {
+  if (currentListener) {
+    currentListener.off('value');
+    currentListener = null;
+  }
 
-  pollRef.on('value', snapshot => {
+  let firstLoad = true;
+  const ref = firebase.database().ref(`poll/${classId}`);
+
+  currentListener = ref;
+  ref.on('value', snapshot => {
     const data = snapshot.val();
     if (!data) return;
 
@@ -214,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sessionId = data.sessionId || null;
     if (sessionId !== currentSessionId) {
       currentSessionId = sessionId;
-      generateQR(sessionId);
+      generateQR(classId, sessionId);
     }
 
     if (firstLoad) { firstLoad = false; initChart(data); }
@@ -227,11 +239,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const errEl = document.getElementById('errorMessage');
     if (errEl) { errEl.textContent = 'Ошибка Firebase: ' + err.message; errEl.style.display = 'block'; }
   });
+}
+
+function loadClassList() {
+  rootRef.once('value', snap => {
+    const data = snap.val();
+    const select = document.getElementById('classSelect');
+    if (!select) return;
+    const keys = data ? Object.keys(data) : [];
+    select.innerHTML = '<option value="">— Выберите класс —</option>' + keys.map(k => `<option value="${k}">${k}</option>`).join('');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadClassList();
+
+  document.getElementById('classSelect')?.addEventListener('change', e => {
+    const val = e.target.value;
+    if (!val) return;
+    if (chart) { chart.destroy(); chart = null; }
+    currentSessionId = null;
+    selectedClass = val;
+    document.getElementById('questionTitle').textContent = '📊 Загрузка...';
+    document.getElementById('questionText').textContent = '';
+    document.getElementById('resultsList').innerHTML = '';
+    document.getElementById('totalVotes').textContent = '0';
+    subscribeClass(val);
+  });
 
   timerInterval = setInterval(updateTimerDisplay, 1000);
 
   document.getElementById('exportCSV')?.addEventListener('click', () => {
-    pollRef.once('value', s => exportCSV(s.val()));
+    if (!selectedClass) return;
+    firebase.database().ref(`poll/${selectedClass}`).once('value', s => exportCSV(s.val()));
   });
   document.getElementById('exportPNG')?.addEventListener('click', exportPNG);
 

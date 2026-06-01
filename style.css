@@ -750,6 +750,60 @@ body.projector .qr-container:hover {
   font-weight: 500;
 }
 
+/* Class Selector (projector) */
+.class-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.class-selector label {
+  font-size: 16px;
+  color: #aab;
+  font-weight: 500;
+}
+
+.class-selector select {
+  padding: 8px 14px;
+  font-size: 16px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.08);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+}
+
+.class-selector select option {
+  background: #1a1a2e;
+  color: white;
+}
+
+/* Class chips (seed page) */
+.class-chip {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  background: white;
+  color: #1a1a2e;
+  border: 2px solid #ddd;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.class-chip:hover {
+  border-color: #1976D2;
+}
+
+.class-chip-active {
+  background: #1976D2;
+  color: white;
+  border-color: #1976D2;
+}
+
 .voter-option {
   color: #8899dd;
   font-size: 14px;

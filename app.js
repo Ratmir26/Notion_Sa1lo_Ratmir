@@ -3,9 +3,17 @@ const NAME_KEY = 'voter_name';
 const PIN_VERIFIED_PREFIX = 'pin_ok_';
 
 const urlParams = new URLSearchParams(window.location.search);
+const classId = urlParams.get('class');
 const urlSession = urlParams.get('s');
 if (urlSession) {
   localStorage.setItem(SESSION_KEY, urlSession);
+}
+
+if (!classId) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('loadingState');
+    if (el) el.textContent = 'Ошибка: не указан класс (?class=...)';
+  });
 }
 
 let hasVotedLocally = localStorage.getItem('voted') === 'true';
@@ -36,7 +44,7 @@ function getOptionsArray(data) {
 
 async function checkRemoteVote() {
   try {
-    const snap = await firebase.database().ref(`${POLL_ID}/voters/${fingerprint}`).once('value');
+    const snap = await firebase.database().ref(`poll/${classId}/voters/${fingerprint}`).once('value');
     if (snap.exists()) {
       hasVotedLocally = true;
       localStorage.setItem('voted', 'true');
@@ -63,9 +71,9 @@ async function castVote(optionId) {
 
   try {
     const updates = {};
-    updates[`${POLL_ID}/options/${optionId}/votes`] = firebase.database.ServerValue.increment(1);
-    updates[`${POLL_ID}/voters/${fingerprint}`] = { name: voterName, optionId, timestamp: firebase.database.ServerValue.TIMESTAMP };
-    updates[`${POLL_ID}/totalVotes`] = firebase.database.ServerValue.increment(1);
+    updates[`poll/${classId}/options/${optionId}/votes`] = firebase.database.ServerValue.increment(1);
+    updates[`poll/${classId}/voters/${fingerprint}`] = { name: voterName, optionId, timestamp: firebase.database.ServerValue.TIMESTAMP };
+    updates[`poll/${classId}/totalVotes`] = firebase.database.ServerValue.increment(1);
     await firebase.database().ref().update(updates);
 
     if (typeof confetti === 'function') {
@@ -302,7 +310,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loadingState = document.getElementById('loadingState');
 
   try {
-    pollRef = firebase.database().ref(POLL_ID);
+    if (!classId) return;
+    pollRef = firebase.database().ref(`poll/${classId}`);
     let initialized = false;
     let timerInterval = setInterval(updateTimerDisplay, 1000);
 
