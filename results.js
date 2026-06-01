@@ -248,7 +248,7 @@ function loadClassList() {
     const data = snap.val();
     const select = document.getElementById('classSelect');
     if (!select) return;
-    const keys = data ? Object.keys(data).filter(k => !RESERVED_KEYS.includes(k)) : [];
+    const keys = data ? Object.keys(data).filter(k => !RESERVED_KEYS.includes(k) && data[k] && data[k].question) : [];
     select.innerHTML = '<option value="">— Выберите класс —</option>' + keys.map(k => `<option value="${k}">${k}</option>`).join('');
   });
 }

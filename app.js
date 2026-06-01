@@ -22,7 +22,7 @@ async function showClassPicker() {
   try {
     const snap = await firebase.database().ref('poll').once('value');
     const data = snap.val();
-    const keys = data ? Object.keys(data).filter(k => !RESERVED_KEYS.includes(k)) : [];
+    const keys = data ? Object.keys(data).filter(k => !RESERVED_KEYS.includes(k) && data[k] && data[k].question) : [];
     if (keys.length === 0) {
       container.innerHTML = '<div style="color:#999;padding:20px;">Нет доступных классов. Обратитесь к учителю.</div>';
       overlay?.classList.add('show');

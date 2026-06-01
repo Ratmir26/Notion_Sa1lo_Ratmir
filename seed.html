@@ -125,7 +125,7 @@
       try {
         const snap = await rootRef.once('value');
         const data = snap.val();
-        const keys = data ? Object.keys(data).filter(k => !RESERVED_KEYS.includes(k)) : [];
+        const keys = data ? Object.keys(data).filter(k => !RESERVED_KEYS.includes(k) && data[k] && data[k].question) : [];
         select.innerHTML = '<option value="">— Выберите класс —</option>' +
           keys.map(k => `<option value="${k}" ${k === currentVal ? 'selected' : ''}>${k}</option>`).join('');
         if (keys.length > 0 && (!selectedClass || !keys.includes(selectedClass))) {
