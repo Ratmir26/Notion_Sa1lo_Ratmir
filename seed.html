@@ -36,31 +36,26 @@
   <p>Классы, данные, таймер, PIN-код, сессии.</p>
 
   <div class="card">
-    <h3>🏫 Мои классы</h3>
-    <p style="font-size:14px;color:#666;">Добавьте класс (например 9А) и выберите его для настройки.</p>
+    <h3>🏫 Класс</h3>
     <div class="flex">
-      <input type="text" id="newClassInput" maxlength="10" placeholder="Например 9А" style="width:120px;padding:10px;font-size:16px;font-weight:600;text-align:center;border:2px solid #ddd;border-radius:8px;">
-      <button id="addClassBtn" class="btn-success">➕ Добавить класс</button>
+      <select id="classSelect" style="padding:10px 14px;font-size:16px;font-weight:600;border:2px solid #ddd;border-radius:8px;flex:1;max-width:200px;">
+        <option value="">— Выберите —</option>
+      </select>
+      <input type="text" id="newClassInput" maxlength="10" placeholder="Новый класс" style="width:100px;padding:10px;font-size:16px;font-weight:600;text-align:center;border:2px solid #ddd;border-radius:8px;">
+      <button id="addClassBtn" class="btn-sm btn-success">➕</button>
+      <button id="deleteClassBtn" class="btn-sm btn-danger" title="Удалить класс">🗑</button>
     </div>
-    <div id="classList" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;"></div>
     <div id="classStatus" class="status"></div>
   </div>
 
-  <div class="card" id="classSettings" style="display:none;">
-    <div class="flex" style="margin-bottom:16px;">
-      <span style="font-weight:700;font-size:18px;">Класс: <span id="currentClassLabel"></span></span>
-      <button id="deleteClassBtn" class="btn-sm btn-danger">🗑 Удалить класс</button>
-    </div>
-
-    <hr style="margin:16px 0;">
-
+  <div class="card">
     <h3>📦 1. Создать / пересоздать данные</h3>
     <p style="font-size:14px;color:#666;">Сбросит всё: варианты, голоса, таймер, избирателей.</p>
     <button id="seedBtn" class="btn-primary">📦 Создать данные</button>
     <div id="seedStatus" class="status"></div>
+  </div>
 
-    <hr style="margin:16px 0;">
-
+  <div class="card">
     <h3>⏱ 2. Таймер голосования</h3>
     <p style="font-size:14px;color:#666;">Установите дату и время окончания. Все ученики увидят обратный отсчёт. После таймера голосование блокируется.</p>
     <label for="timerInput">Время окончания:</label>
@@ -71,9 +66,9 @@
     </div>
     <div id="timerStatus" class="status"></div>
     <div id="currentTimer" class="current-timer"></div>
+  </div>
 
-    <hr style="margin:16px 0;">
-
+  <div class="card">
     <h3>🔑 3. PIN-код доступа</h3>
     <p style="font-size:14px;color:#666;">Установите PIN — ученики введут его перед голосованием. Показывается на проекторе.</p>
     <div class="flex">
@@ -83,9 +78,9 @@
     </div>
     <div id="currentPin" class="current-timer"></div>
     <div id="pinStatus" class="status"></div>
+  </div>
 
-    <hr style="margin:16px 0;">
-
+  <div class="card">
     <h3>🎬 4. Управление голосованием</h3>
     <p style="font-size:14px;color:#666;">Нажмите «Начать голосование» — создастся новая сессия, обнулятся голоса. QR-код на странице результатов обновится автоматически.</p>
     <div class="flex" style="margin-bottom:12px;">
@@ -125,41 +120,22 @@
     const RESERVED_KEYS = ['question', 'options', 'totalVotes', 'voters', 'sessionId', 'timerEnd', 'pin'];
 
     async function loadClassList() {
-      const container = document.getElementById('classList');
+      const select = document.getElementById('classSelect');
+      const currentVal = select.value;
       try {
         const snap = await rootRef.once('value');
         const data = snap.val();
         const keys = data ? Object.keys(data).filter(k => !RESERVED_KEYS.includes(k)) : [];
-        if (keys.length === 0) {
-          container.innerHTML = '<span style="color:#999;font-size:14px;">Классов пока нет</span>';
-          document.getElementById('classSettings').style.display = 'none';
-          selectedClass = null;
-          return;
+        select.innerHTML = '<option value="">— Выберите класс —</option>' +
+          keys.map(k => `<option value="${k}" ${k === currentVal ? 'selected' : ''}>${k}</option>`).join('');
+        if (keys.length > 0 && (!selectedClass || !keys.includes(selectedClass))) {
+          select.value = keys[0];
         }
-        container.innerHTML = keys.map(k =>
-          `<button class="class-chip ${selectedClass === k ? 'class-chip-active' : ''}" data-class="${k}">${k}</button>`
-        ).join('');
-        container.querySelectorAll('.class-chip').forEach(btn => {
-          btn.addEventListener('click', () => selectClass(btn.dataset.class));
-        });
-        if (!selectedClass || !keys.includes(selectedClass)) {
-          selectClass(keys[0]);
-        } else {
-          selectClass(selectedClass);
-        }
+        selectedClass = select.value || null;
+        if (selectedClass) loadCurrentData();
       } catch (e) {
-        container.innerHTML = '<span style="color:#c62828;">Ошибка загрузки</span>';
+        select.innerHTML = '<option value="">Ошибка загрузки</option>';
       }
-    }
-
-    function selectClass(classId) {
-      selectedClass = classId;
-      document.getElementById('currentClassLabel').textContent = classId;
-      document.getElementById('classSettings').style.display = 'block';
-      document.querySelectorAll('.class-chip').forEach(el => {
-        el.classList.toggle('class-chip-active', el.dataset.class === classId);
-      });
-      loadCurrentData();
     }
 
     async function loadCurrentData() {
@@ -221,6 +197,18 @@
       }
     });
 
+    document.getElementById('classSelect').addEventListener('change', e => {
+      selectedClass = e.target.value || null;
+      document.getElementById('seedStatus').innerHTML = '';
+      document.getElementById('timerStatus').innerHTML = '';
+      document.getElementById('pinStatus').innerHTML = '';
+      document.getElementById('sessionStatus').innerHTML = '';
+      const seedBtn = document.getElementById('seedBtn');
+      seedBtn.disabled = false;
+      seedBtn.textContent = '📦 Создать данные';
+      if (selectedClass) loadCurrentData();
+    });
+
     document.getElementById('newClassInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -235,6 +223,14 @@
       try {
         await rootRef.child(selectedClass).remove();
         selectedClass = null;
+        document.getElementById('classSelect').value = '';
+        document.getElementById('seedStatus').innerHTML = '';
+        document.getElementById('timerStatus').innerHTML = '';
+        document.getElementById('pinStatus').innerHTML = '';
+        document.getElementById('sessionStatus').innerHTML = '';
+        document.getElementById('currentTimer').style.display = 'none';
+        document.getElementById('currentPin').style.display = 'none';
+        document.getElementById('currentSession').style.display = 'none';
         await loadClassList();
       } catch (err) {
         document.getElementById('classStatus').innerHTML = `<span class="error">❌ ${err.message}</span>`;
