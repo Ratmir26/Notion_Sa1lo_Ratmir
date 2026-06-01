@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Голосование</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Голосование">
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🗳 Школьное голосование</h1>
+      <p class="question" id="questionText">Загрузка...</p>
+    </header>
+
+    <div id="timerDisplay" class="timer-display"></div>
+
+    <div id="loadingState" class="loading">Загрузка голосования</div>
+
+    <div id="content" class="hidden">
+      <div id="messageBox" class="message-box"></div>
+      <div id="optionsGrid" class="options-grid"></div>
+      <div id="statusBar" class="status-bar" style="display:none">
+        <span>Всего проголосовало: <strong id="totalCount">0</strong></span>
+        <span>🟢</span>
+      </div>
+      <div id="errorMessage" class="error-message"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+  <script src="firebase-config.js?v=4"></script>
+  <script src="app.js?v=4"></script>
+</body>
+</html>

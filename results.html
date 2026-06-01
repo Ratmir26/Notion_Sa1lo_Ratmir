@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Результаты голосования</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#1a1a2e">
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body class="projector">
+  <div class="container">
+    <div class="projector-content">
+      <header>
+        <h1 id="questionTitle">📊 Результаты голосования</h1>
+        <p class="question" id="questionText">Загрузка...</p>
+      </header>
+
+      <div id="timerDisplay" class="timer-display"></div>
+
+      <div class="total-votes">
+        Всего проголосовало: <span id="totalVotes">0</span>
+      </div>
+
+      <div class="results-panel">
+        <div id="qrContainer" class="qr-container"></div>
+        <div class="chart-wrapper">
+          <canvas id="resultsChart"></canvas>
+        </div>
+        <div class="results-list" id="resultsList"></div>
+      </div>
+
+      <div class="export-bar">
+        <button id="exportCSV" class="export-btn">📥 CSV</button>
+        <button id="exportPNG" class="export-btn">🖼 PNG</button>
+        <span style="font-size:13px;color:#556;">Обновлено: <span id="lastUpdate">--:--:--</span></span>
+      </div>
+    </div>
+
+    <div id="connectionStatus" class="conn-status">⏳ Подключение...</div>
+    <div id="errorMessage" class="error-message" style="display:none"></div>
+  </div>
+
+  <div id="qrModal" class="qr-modal">
+    <div class="qr-modal-content">
+      <div id="qrModalImage"></div>
+      <p style="color:#aaa;margin-top:12px;font-size:14px;">Наведите камеру телефона</p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="firebase-config.js?v=4"></script>
+  <script src="results.js?v=4"></script>
+</body>
+</html>
