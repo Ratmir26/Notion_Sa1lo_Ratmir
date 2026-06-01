@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#1a1a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Голосование">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <div class="container">
@@ -34,10 +34,21 @@
     </div>
   </div>
 
+  <div id="nameOverlay" class="name-overlay">
+    <div class="name-card">
+      <div class="name-card-icon">✏️</div>
+      <h2>Как тебя зовут?</h2>
+      <p>Введи имя, чтобы учитель видел, кто проголосовал</p>
+      <input type="text" id="nameInput" maxlength="20" placeholder="Имя" autocomplete="off" spellcheck="false">
+      <button id="nameSubmitBtn">Продолжить</button>
+      <div id="nameError" class="name-error"></div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
-  <script src="firebase-config.js?v=4"></script>
-  <script src="app.js?v=4"></script>
+  <script src="firebase-config.js?v=5"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

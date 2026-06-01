@@ -47,7 +47,7 @@
 - `style.css` — общий. Mobile-first для index.html, тёмный проектор для `body.projector` (results.html).
 
 ## Важные детали
-- Cache busting: `?v=4` на всех локальных ассетах. При изменениях увеличивать номер.
+- Cache busting: `?v=5` на всех локальных ассетах. При изменениях увеличивать номер.
 - `vercel.json` удалён (вызывал build-config warning). Деплой как статика.
 - Нет git-репозитория. Нет тестов, линтера, typecheck.
 - QR-код генерируется через qrcodejs CDN. Содержит `?s=sessionId`.

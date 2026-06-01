@@ -1,4 +1,5 @@
 const SESSION_KEY = 'session_id';
+const NAME_KEY = 'voter_name';
 
 const urlParams = new URLSearchParams(window.location.search);
 const urlSession = urlParams.get('s');
@@ -7,6 +8,7 @@ if (urlSession) {
 }
 
 let hasVotedLocally = localStorage.getItem('voted') === 'true';
+let voterName = localStorage.getItem(NAME_KEY) || '';
 let userVoteOptionId = null;
 let currentData = null;
 let timerEndCache = null;
@@ -15,8 +17,6 @@ let pollRef = null;
 function getFingerprint() {
   const raw = [
     screen.colorDepth,
-    screen.width,
-    screen.height,
     navigator.hardwareConcurrency || ''
   ].join('|||');
   let hash = 0;
@@ -62,7 +62,7 @@ async function castVote(optionId) {
   try {
     const updates = {};
     updates[`${POLL_ID}/options/${optionId}/votes`] = firebase.database.ServerValue.increment(1);
-    updates[`${POLL_ID}/voters/${fingerprint}`] = { optionId, timestamp: firebase.database.ServerValue.TIMESTAMP };
+    updates[`${POLL_ID}/voters/${fingerprint}`] = { name: voterName, optionId, timestamp: firebase.database.ServerValue.TIMESTAMP };
     updates[`${POLL_ID}/totalVotes`] = firebase.database.ServerValue.increment(1);
     await firebase.database().ref().update(updates);
 
@@ -192,6 +192,36 @@ function showVotingNotStarted() {
   }
 }
 
+function showNameInput() {
+  document.getElementById('loadingState')?.classList.add('hidden');
+  document.getElementById('nameOverlay')?.classList.add('show');
+}
+
+function hideNameInput() {
+  document.getElementById('nameOverlay')?.classList.remove('show');
+}
+
+function showNameError(msg) {
+  const el = document.getElementById('nameError');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+function hideNameError() {
+  const el = document.getElementById('nameError');
+  if (el) { el.style.display = 'none'; }
+}
+
+function showVotingAfterName() {
+  hideNameInput();
+  document.getElementById('content')?.classList.remove('hidden');
+  document.getElementById('loadingState')?.classList.add('hidden');
+  const msgBox = document.getElementById('messageBox');
+  if (msgBox) { msgBox.classList.remove('show'); msgBox.innerHTML = ''; }
+  const grid = document.getElementById('optionsGrid');
+  if (grid) grid.style.display = '';
+  renderOptions(currentData);
+}
+
 function showError(msg) {
   const el = document.getElementById('errorMessage');
   if (el) { el.textContent = msg; el.style.display = 'block'; }
@@ -209,26 +239,30 @@ function findOptionText(optionId, data) {
 }
 
 function initVoting(data) {
+  currentData = data;
   document.getElementById('loadingState')?.classList.add('hidden');
-  document.getElementById('content')?.classList.remove('hidden');
-
-  const msgBox = document.getElementById('messageBox');
-  if (msgBox) { msgBox.classList.remove('show'); msgBox.innerHTML = ''; }
-  const grid = document.getElementById('optionsGrid');
-  if (grid) grid.style.display = '';
-  const statusBar = document.getElementById('statusBar');
-  if (statusBar) statusBar.style.display = '';
 
   const qEl = document.getElementById('questionText');
   if (qEl) qEl.textContent = data.question;
 
   if (timerEndCache && Date.now() >= timerEndCache) {
+    document.getElementById('content')?.classList.remove('hidden');
     showVotingClosed();
-  } else if (hasVotedLocally) {
-    showThankYou(data);
-  } else {
-    renderOptions(data);
+    return;
   }
+
+  if (hasVotedLocally) {
+    document.getElementById('content')?.classList.remove('hidden');
+    showThankYou(data);
+    return;
+  }
+
+  if (!voterName) {
+    showNameInput();
+    return;
+  }
+
+  showVotingAfterName();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -302,5 +336,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Init error:', err);
     if (loadingState) loadingState.textContent = 'Ошибка загрузки. Проверьте Firebase.';
     showError('Не удалось загрузить данные.');
+  }
+});
+
+document.getElementById('nameSubmitBtn')?.addEventListener('click', () => {
+  const input = document.getElementById('nameInput');
+  const name = input.value.trim();
+  if (!name) { showNameError('Введите имя'); return; }
+  hideNameError();
+  voterName = name;
+  localStorage.setItem(NAME_KEY, name);
+  input.value = '';
+  showVotingAfterName();
+});
+
+document.getElementById('nameInput')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.getElementById('nameSubmitBtn')?.click();
   }
 });

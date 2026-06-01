@@ -7,7 +7,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#1a1a2e">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body class="projector">
   <div class="container">
@@ -16,6 +16,7 @@
         <h1 id="questionTitle">📊 Результаты голосования</h1>
         <p class="question" id="questionText">Загрузка...</p>
       </header>
+      <button id="burgerBtn" class="burger-btn" title="Кто проголосовал">☰</button>
 
       <div id="timerDisplay" class="timer-display"></div>
 
@@ -49,12 +50,22 @@
     </div>
   </div>
 
+  <div id="bottomSheetBackdrop" class="bottom-sheet-backdrop"></div>
+  <div id="bottomSheet" class="bottom-sheet">
+    <div class="bottom-sheet-handle"></div>
+    <div class="bottom-sheet-header">
+      <h3>Кто проголосовал</h3>
+      <button id="bottomSheetClose" class="bottom-sheet-close">✕</button>
+    </div>
+    <div id="voterList" class="voter-list"></div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="firebase-config.js?v=4"></script>
-  <script src="results.js?v=4"></script>
+  <script src="firebase-config.js?v=5"></script>
+  <script src="results.js?v=5"></script>
 </body>
 </html>

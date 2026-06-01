@@ -121,6 +121,39 @@ function generateQR(sessionId) {
   });
 }
 
+function renderVoterList(data) {
+  const container = document.getElementById('voterList');
+  if (!container) return;
+  const voters = data.voters || {};
+  const options = getOptionsArray(data);
+  const optText = {};
+  const letters = ['А', 'Б', 'В', 'Г'];
+  options.forEach((o, i) => { optText[o.id] = `${letters[i]}. ${o.text}`; });
+
+  const entries = Object.entries(voters);
+  if (entries.length === 0) {
+    container.innerHTML = '<div class="voter-empty">Пока никто не проголосовал</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  entries.sort((a, b) => (a[1].timestamp || 0) - (b[1].timestamp || 0));
+  entries.forEach(([fp, v]) => {
+    const item = document.createElement('div');
+    item.className = 'voter-item';
+    const name = v.name && v.name.trim() ? v.name : 'Аноним';
+    const optionLabel = optText[v.optionId] || '—';
+    item.innerHTML = `<span class="voter-name">${escapeHtml(name)}</span><span class="voter-option">${escapeHtml(optionLabel)}</span>`;
+    container.appendChild(item);
+  });
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
 function exportCSV(data) {
   const options = getOptionsArray(data);
   const total = data.totalVotes || 0;
@@ -177,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (firstLoad) { firstLoad = false; initChart(data); }
     updateChartData(data);
+    renderVoterList(data);
   }, err => {
     console.error('FB error:', err);
     document.getElementById('connectionStatus').textContent = '🔴 Ошибка';
@@ -207,4 +241,21 @@ document.addEventListener('DOMContentLoaded', () => {
       qrModal.classList.remove('open');
     });
   }
+
+  const burgerBtn = document.getElementById('burgerBtn');
+  const bottomSheet = document.getElementById('bottomSheet');
+  const backdrop = document.getElementById('bottomSheetBackdrop');
+  const closeBtn = document.getElementById('bottomSheetClose');
+
+  function closeBottomSheet() {
+    bottomSheet.classList.remove('open');
+    backdrop.classList.remove('open');
+  }
+
+  burgerBtn?.addEventListener('click', () => {
+    bottomSheet.classList.add('open');
+    backdrop.classList.add('open');
+  });
+  closeBtn?.addEventListener('click', closeBottomSheet);
+  backdrop?.addEventListener('click', closeBottomSheet);
 });
