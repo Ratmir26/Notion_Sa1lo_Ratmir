@@ -44,6 +44,7 @@
       <input type="text" id="newClassInput" maxlength="10" placeholder="Новый класс" style="width:100px;padding:10px;font-size:16px;font-weight:600;text-align:center;border:2px solid #ddd;border-radius:8px;">
       <button id="addClassBtn" class="btn-sm btn-success">➕</button>
       <button id="deleteClassBtn" class="btn-sm btn-danger" title="Удалить класс">🗑</button>
+      <button id="cleanGarbageBtn" class="btn-sm" style="background:#FF6F00;color:white;" title="Удалить мусорные ключи">🧹</button>
     </div>
     <div id="classStatus" class="status"></div>
   </div>
@@ -207,6 +208,25 @@
       seedBtn.disabled = false;
       seedBtn.textContent = '📦 Создать данные';
       if (selectedClass) loadCurrentData();
+    });
+
+    document.getElementById('cleanGarbageBtn').addEventListener('click', async () => {
+      const status = document.getElementById('classStatus');
+      if (!confirm('Удалить все не-классы (мусор) из Firebase?')) return;
+      status.innerHTML = '⏳ Очистка...';
+      try {
+        const snap = await rootRef.once('value');
+        const data = snap.val();
+        if (!data) { status.innerHTML = '<span class="success">✅ Нет данных</span>'; return; }
+        const toRemove = Object.keys(data).filter(k => !RESERVED_KEYS.includes(k) && !(data[k] && data[k].question));
+        if (toRemove.length === 0) { status.innerHTML = '<span class="success">✅ Мусора нет</span>'; return; }
+        const promises = toRemove.map(k => rootRef.child(k).remove());
+        await Promise.all(promises);
+        status.innerHTML = `<span class="success">✅ Удалено мусорных ключей: ${toRemove.length}</span>`;
+        await loadClassList();
+      } catch (err) {
+        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
+      }
     });
 
     document.getElementById('newClassInput').addEventListener('keydown', e => {
