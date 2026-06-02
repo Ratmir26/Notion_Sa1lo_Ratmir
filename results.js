@@ -199,8 +199,20 @@ function subscribeClass(classId) {
   currentListener = ref;
   ref.on('value', snapshot => {
     const data = snapshot.val();
-    if (!data) return;
 
+    if (!data) {
+      document.getElementById('questionTitle').textContent = '?? Нет данных';
+      document.getElementById('questionText').textContent = '';
+      document.getElementById('resultsList').innerHTML = '';
+      document.getElementById('totalVotes').textContent = '0';
+      timerEndCache = null;
+      updateTimerDisplay();
+      const pinEl = document.getElementById('pinDisplay');
+      if (pinEl) pinEl.style.display = 'none';
+      if (qrCodeInstance) { qrCodeInstance.clear(); qrCodeInstance = null; }
+      document.getElementById('qrContainer').innerHTML = '';
+      return;
+    }
     document.getElementById('connectionStatus').textContent = 'рџџў Connected';
     document.getElementById('connectionStatus').className = 'conn-status connected';
     const errEl = document.getElementById('errorMessage');
@@ -278,6 +290,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('questionText').textContent = '';
     document.getElementById('resultsList').innerHTML = '';
     document.getElementById('totalVotes').textContent = '0';
+    document.getElementById('totalVotes').textContent = '0';
+    const pinEl = document.getElementById('pinDisplay');
+    if (pinEl) pinEl.style.display = 'none';
+    timerEndCache = null;
+    updateTimerDisplay();
+    if (qrCodeInstance) { qrCodeInstance.clear(); qrCodeInstance = null; }
+    document.getElementById('qrContainer').innerHTML = '';
     subscribeClass(val);
   });
 
@@ -285,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('exportCSV')?.addEventListener('click', () => {
     if (!selectedClass) return;
-    firebase.database().ref(`poll/${selectedClass}`).once('value', s => exportCSV(s.val()));
+    firebase.database().ref('poll/' + selectedClass).once('value', s => exportCSV(s.val()));
   });
   document.getElementById('exportPNG')?.addEventListener('click', exportPNG);
 
@@ -296,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
     qrContainer.addEventListener('click', () => {
       const img = qrContainer.querySelector('img');
       if (img && img.src) {
-        qrModalImage.innerHTML = `<img src="${img.src}" style="width:280px;height:280px;border-radius:8px;">`;
+        qrModalImage.innerHTML = '<img src="' + img.src + '" style="width:280px;height:280px;border-radius:8px;">';
         qrModal.classList.add('open');
       }
     });
