@@ -200,6 +200,43 @@
       }
     });
 
+    document.getElementById('addClassBtn').addEventListener('click', async () => {
+      const input = document.getElementById('newClassInput');
+      const className = input.value.trim();
+      const status = document.getElementById('classStatus');
+      if (!className) { status.innerHTML = '<span class="error">❌ Введите название класса</span>'; return; }
+      try {
+        const snap = await rootRef.child(className).once('value');
+        if (snap.val() !== null) { status.innerHTML = '<span class="error">❌ Класс уже существует</span>'; return; }
+        await rootRef.child(className).set(defaultPollData());
+        input.value = '';
+        status.innerHTML = '<span class="success">✅ Класс добавлен</span>';
+        await loadClassList();
+      } catch (err) {
+        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
+      }
+    });
+
+    document.getElementById('cleanGarbageBtn').addEventListener('click', async () => {
+      const status = document.getElementById('classStatus');
+      if (!confirm('Удалить все ключи под poll, которые не являются классами?')) return;
+      try {
+        const snap = await rootRef.once('value');
+        const data = snap.val();
+        if (!data) { status.innerHTML = '<span class="success">✅ Нет данных</span>'; return; }
+        const toRemove = Object.keys(data).filter(k =>
+          !RESERVED_KEYS.includes(k) && !(data[k] && data[k].question)
+        );
+        if (toRemove.length === 0) { status.innerHTML = '<span class="success">✅ Нет мусора</span>'; return; }
+        const promises = toRemove.map(k => rootRef.child(k).remove());
+        await Promise.all(promises);
+        status.innerHTML = `<span class="success">✅ Удалено мусорных ключей: ${toRemove.length}</span>`;
+        await loadClassList();
+      } catch (err) {
+        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
+      }
+    });
+
     document.getElementById('deleteClassBtn').addEventListener('click', async () => {
       if (!selectedClass) return;
       if (!confirm(`Удалить класс ${selectedClass} и все его данные?`)) return;
