@@ -8,16 +8,6 @@ let currentListener = null;
 
 const rootRef = firebase.database().ref('poll');
 
-function getLetter(i) {
-  return ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я'][i] || '?';
-}
-
-function getOptionsArray(data) {
-  if (!data || !data.options) return [];
-  if (Array.isArray(data.options)) return data.options.slice().sort((a, b) => a.id - b.id);
-  return Object.values(data.options).sort((a, b) => a.id - b.id);
-}
-
 const COLORS = ['#1976D2', '#FF6F00', '#388E3C', '#D32F2F'];
 function getColor(i) { return COLORS[i % COLORS.length]; }
 
@@ -255,8 +245,6 @@ function subscribeClass(classId) {
   });
 }
 
-const RESERVED_KEYS = ['question', 'options', 'totalVotes', 'voters', 'sessionId', 'timerEnd', 'pin'];
-
 function loadClassList() {
   rootRef.once('value', snap => {
     const data = snap.val();
@@ -285,7 +273,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('questionTitle').textContent = '📊 Загрузка...';
     document.getElementById('questionText').textContent = '';
     document.getElementById('resultsList').innerHTML = '';
-    document.getElementById('totalVotes').textContent = '0';
     document.getElementById('totalVotes').textContent = '0';
     const pinEl = document.getElementById('pinDisplay');
     if (pinEl) pinEl.style.display = 'none';

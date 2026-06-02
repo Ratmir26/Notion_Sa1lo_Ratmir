@@ -13,8 +13,6 @@ if (!classId) {
   document.addEventListener('DOMContentLoaded', showClassPicker);
 }
 
-const RESERVED_KEYS = ['question', 'options', 'totalVotes', 'voters', 'sessionId', 'timerEnd', 'pin'];
-
 async function showClassPicker() {
   document.getElementById('loadingState')?.classList.add('hidden');
   const container = document.getElementById('classPickerList');
@@ -67,16 +65,6 @@ function getFingerprint() {
 }
 
 const fingerprint = getFingerprint();
-
-function getLetter(i) {
-  return ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я'][i] || '?';
-}
-
-function getOptionsArray(data) {
-  if (!data || !data.options) return [];
-  if (Array.isArray(data.options)) return data.options.slice().sort((a, b) => a.id - b.id);
-  return Object.values(data.options).sort((a, b) => a.id - b.id);
-}
 
 async function checkRemoteVote() {
   try {
@@ -373,8 +361,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           userVoteOptionId = null;
         }
 
-        const votedRemote = await checkRemoteVote();
-        if (hasVotedLocally && !votedRemote) {
+        const fpVoter = data.voters ? data.voters[fingerprint] : null;
+        if (fpVoter) {
+          hasVotedLocally = true;
+          localStorage.setItem('voted', 'true');
+          userVoteOptionId = fpVoter.optionId;
+        }
+        if (hasVotedLocally && !fpVoter) {
           hasVotedLocally = false;
           localStorage.removeItem('voted');
           userVoteOptionId = null;
