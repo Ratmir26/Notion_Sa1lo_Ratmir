@@ -156,14 +156,9 @@
       document.getElementById('timerStatus').innerHTML = '';
       document.getElementById('pinStatus').innerHTML = '';
       document.getElementById('sessionStatus').innerHTML = '';
-        const seedBtn = document.getElementById('seedBtn');
-        seedBtn.disabled = false;
-        seedBtn.textContent = '📦 Создать данные';
-        loadVoterList();
-      } catch (e) {
-        console.error(e);
-      }
-    }
+      document.getElementById('seedBtn').disabled = false;
+      document.getElementById('seedBtn').textContent = '📦 Создать данные';
+      loadVoterList();
     });
 
     document.getElementById('newClassInput').addEventListener('keydown', e => {
