@@ -239,13 +239,17 @@
     });
 
     document.getElementById('deleteClassBtn').addEventListener('click', async () => {
-      if (!selectedClass) return;
-      if (!confirm(`Удалить класс ${selectedClass} и все его данные?`)) return;
+      const select = document.getElementById('classSelect');
+      const className = select.value || selectedClass;
+      if (!className) return;
+      if (!confirm(`Удалить класс ${className} и все его данные?`)) return;
       if (!confirm('Точно? Это удалит всех избирателей. Отменить нельзя.')) return;
+      const status = document.getElementById('classStatus');
+      status.innerHTML = '⏳ Удаление...';
       try {
-        await rootRef.child(selectedClass).remove();
+        await rootRef.child(className).remove();
         selectedClass = null;
-        document.getElementById('classSelect').value = '';
+        select.value = '';
         document.getElementById('seedStatus').innerHTML = '';
         document.getElementById('timerStatus').innerHTML = '';
         document.getElementById('pinStatus').innerHTML = '';
@@ -253,9 +257,10 @@
         document.getElementById('currentTimer').style.display = 'none';
         document.getElementById('currentPin').style.display = 'none';
         document.getElementById('currentSession').style.display = 'none';
+        status.innerHTML = `<span class="success">✅ Класс ${className} удалён</span>`;
         await loadClassList();
       } catch (err) {
-        document.getElementById('classStatus').innerHTML = `<span class="error">❌ ${err.message}</span>`;
+        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
       }
     });
 
