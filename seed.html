@@ -129,6 +129,19 @@
       return rootRef.child(selectedClass);
     }
 
+    let classListener = null;
+
+    function subscribeClassData(classId) {
+      if (classListener) {
+        classListener.off('value');
+        classListener = null;
+      }
+      if (!classId) return;
+      const ref = rootRef.child(classId);
+      classListener = ref;
+      ref.on('value', () => { loadCurrentData(); loadVoterList(); });
+    }
+
     const RESERVED_KEYS = ['question', 'options', 'totalVotes', 'voters', 'sessionId', 'timerEnd', 'pin'];
 
     async function loadCurrentData() {
@@ -176,7 +189,7 @@
           select.value = keys[0];
         }
         selectedClass = select.value || null;
-        if (selectedClass) { loadCurrentData(); loadVoterList(); }
+        subscribeClassData(selectedClass);
       } catch (e) {
         select.innerHTML = '<option value="">Ошибка загрузки</option>';
       }
@@ -190,8 +203,7 @@
       document.getElementById('sessionStatus').innerHTML = '';
       document.getElementById('seedBtn').disabled = false;
       document.getElementById('seedBtn').textContent = '📦 Создать данные';
-      loadCurrentData();
-      loadVoterList();
+      subscribeClassData(selectedClass);
     });
 
     document.getElementById('newClassInput').addEventListener('keydown', e => {
