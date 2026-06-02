@@ -57,6 +57,8 @@ let pollRef = null;
 function getFingerprint() {
   const raw = [
     screen.colorDepth,
+    screen.availWidth,
+    screen.availHeight,
     navigator.hardwareConcurrency || ''
   ].join('|||');
   let hash = 0;
@@ -65,6 +67,10 @@ function getFingerprint() {
 }
 
 const fingerprint = getFingerprint();
+
+function getLetter(i) {
+  return ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я'][i] || '?';
+}
 
 function getOptionsArray(data) {
   if (!data || !data.options) return [];
@@ -126,7 +132,6 @@ async function castVote(optionId) {
 function renderOptions(data) {
   const grid = document.getElementById('optionsGrid');
   if (!grid) return;
-  const letters = ['А', 'Б', 'В', 'Г'];
   const isExpired = timerEndCache && Date.now() >= timerEndCache;
   grid.innerHTML = '';
   getOptionsArray(data).forEach((opt, i) => {
@@ -136,7 +141,7 @@ function renderOptions(data) {
     btn.className = 'option-btn';
     btn.dataset.optionId = opt.id;
     btn.disabled = hasVotedLocally || isExpired;
-    btn.innerHTML = `<span class="vote-bar" style="width:${pct}%"></span><span class="option-content"><span class="option-label">${letters[i]}</span>${opt.text}<span class="vote-count">${opt.votes}</span></span>`;
+    btn.innerHTML = `<span class="vote-bar" style="width:${pct}%"></span><span class="option-content"><span class="option-label">${getLetter(i)}</span>${opt.text}<span class="vote-count">${opt.votes}</span></span>`;
     btn.addEventListener('click', () => castVote(opt.id));
     grid.appendChild(btn);
   });
@@ -146,7 +151,6 @@ function updateLiveResults(data) {
   currentData = data;
   const grid = document.getElementById('optionsGrid');
   if (!grid) return;
-  const letters = ['А', 'Б', 'В', 'Г'];
   const buttons = grid.querySelectorAll('.option-btn');
   getOptionsArray(data).forEach((opt, i) => {
     const btn = buttons[i];

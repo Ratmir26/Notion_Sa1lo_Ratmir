@@ -92,10 +92,21 @@
     <div id="sessionStatus" class="status"></div>
   </div>
 
+  <div class="card">
+    <h3>👤 5. Кто проголосовал</h3>
+    <p style="font-size:14px;color:#666;">Нажмите на имя, чтобы удалить избирателя (можно переголосовать).</p>
+    <div id="voterList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <div id="voterListStatus" class="status"></div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  <script src="firebase-config.js?v=7"></script>
+  <script src="firebase-config.js?v=8"></script>
   <script>
+    function getLetter(i) {
+      return ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я'][i] || '?';
+    }
+
     const rootRef = firebase.database().ref('poll');
     let selectedClass = null;
 
@@ -133,70 +144,11 @@
           select.value = keys[0];
         }
         selectedClass = select.value || null;
-        if (selectedClass) loadCurrentData();
+        if (selectedClass) { loadCurrentData(); loadVoterList(); }
       } catch (e) {
         select.innerHTML = '<option value="">Ошибка загрузки</option>';
       }
     }
-
-    async function loadCurrentData() {
-      if (!selectedClass) return;
-      try {
-        const snap = await getClassRef().once('value');
-        const data = snap.val();
-
-        const timerEl = document.getElementById('currentTimer');
-        if (data && data.timerEnd) {
-          timerEl.textContent = `⏱ Таймер: до ${new Date(data.timerEnd).toLocaleString('ru-RU')}`;
-          timerEl.style.display = 'block';
-        } else {
-          timerEl.style.display = 'none';
-        }
-
-        const pinEl = document.getElementById('currentPin');
-        if (data && data.pin) {
-          pinEl.textContent = `🔑 PIN: ${data.pin}`;
-          pinEl.style.display = 'block';
-        } else {
-          pinEl.style.display = 'none';
-        }
-
-        const sessionEl = document.getElementById('currentSession');
-        if (data && data.sessionId) {
-          sessionEl.textContent = `🎬 Сессия: ${data.sessionId}`;
-          sessionEl.style.display = 'block';
-        } else {
-          sessionEl.style.display = 'none';
-        }
-
-        document.getElementById('seedStatus').innerHTML = '';
-        document.getElementById('timerStatus').innerHTML = '';
-        document.getElementById('pinStatus').innerHTML = '';
-        document.getElementById('sessionStatus').innerHTML = '';
-        const seedBtn = document.getElementById('seedBtn');
-        seedBtn.disabled = false;
-        seedBtn.textContent = '📦 Создать данные';
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    document.getElementById('addClassBtn').addEventListener('click', async () => {
-      const input = document.getElementById('newClassInput');
-      const status = document.getElementById('classStatus');
-      const name = input.value.trim();
-      if (!name) { status.innerHTML = '<span class="error">❌ Введите название класса</span>'; return; }
-      try {
-        const snap = await rootRef.child(name).once('value');
-        if (snap.exists()) { status.innerHTML = '<span class="error">❌ Такой класс уже существует</span>'; return; }
-        await rootRef.child(name).set(defaultPollData());
-        status.innerHTML = '<span class="success">✅ Класс добавлен</span>';
-        input.value = '';
-        await loadClassList();
-      } catch (err) {
-        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
-      }
-    });
 
     document.getElementById('classSelect').addEventListener('change', e => {
       selectedClass = e.target.value || null;
@@ -204,29 +156,14 @@
       document.getElementById('timerStatus').innerHTML = '';
       document.getElementById('pinStatus').innerHTML = '';
       document.getElementById('sessionStatus').innerHTML = '';
-      const seedBtn = document.getElementById('seedBtn');
-      seedBtn.disabled = false;
-      seedBtn.textContent = '📦 Создать данные';
-      if (selectedClass) loadCurrentData();
-    });
-
-    document.getElementById('cleanGarbageBtn').addEventListener('click', async () => {
-      const status = document.getElementById('classStatus');
-      if (!confirm('Удалить все не-классы (мусор) из Firebase?')) return;
-      status.innerHTML = '⏳ Очистка...';
-      try {
-        const snap = await rootRef.once('value');
-        const data = snap.val();
-        if (!data) { status.innerHTML = '<span class="success">✅ Нет данных</span>'; return; }
-        const toRemove = Object.keys(data).filter(k => !RESERVED_KEYS.includes(k) && !(data[k] && data[k].question));
-        if (toRemove.length === 0) { status.innerHTML = '<span class="success">✅ Мусора нет</span>'; return; }
-        const promises = toRemove.map(k => rootRef.child(k).remove());
-        await Promise.all(promises);
-        status.innerHTML = `<span class="success">✅ Удалено мусорных ключей: ${toRemove.length}</span>`;
-        await loadClassList();
-      } catch (err) {
-        status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
+        const seedBtn = document.getElementById('seedBtn');
+        seedBtn.disabled = false;
+        seedBtn.textContent = '📦 Создать данные';
+        loadVoterList();
+      } catch (e) {
+        console.error(e);
       }
+    }
     });
 
     document.getElementById('newClassInput').addEventListener('keydown', e => {
@@ -321,6 +258,53 @@
         status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
       }
     });
+
+    async function loadVoterList() {
+      const container = document.getElementById('voterList');
+      if (!selectedClass) { container.innerHTML = ''; return; }
+      try {
+        const snap = await getClassRef().child('voters').once('value');
+        const voters = snap.val() || {};
+        const optSnap = await getClassRef().child('options').once('value');
+        const options = optSnap.val() || [];
+        const optText = {};
+        (Array.isArray(options) ? options : Object.values(options)).forEach((o, i) => {
+          optText[o.id] = `${getLetter(i)}. ${o.text}`;
+        });
+        const entries = Object.entries(voters);
+        if (entries.length === 0) {
+          container.innerHTML = '<span style="color:#999;font-size:14px;">Нет избирателей</span>';
+          return;
+        }
+        container.innerHTML = entries.map(([fp, v]) =>
+          `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f9f9f9;border-radius:8px;">
+            <span><strong>${v.name || 'Аноним'}</strong> — ${optText[v.optionId] || '?'}</span>
+            <button class="remove-voter-btn" data-fingerprint="${fp}" style="background:#D32F2F;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;">✕</button>
+          </div>`
+        ).join('');
+        container.querySelectorAll('.remove-voter-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const fp = btn.dataset.fingerprint;
+            if (!confirm(`Удалить избирателя ${voters[fp]?.name || 'Аноним'}? Он сможет проголосовать снова.`)) return;
+            try {
+              const voter = voters[fp];
+              const updates = {};
+              updates[`options/${voter.optionId}/votes`] = firebase.database.ServerValue.increment(-1);
+              updates[`totalVotes`] = firebase.database.ServerValue.increment(-1);
+              updates[`voters/${fp}`] = null;
+              await getClassRef().update(updates);
+              document.getElementById('voterListStatus').innerHTML = '<span class="success">✅ Избиратель удалён</span>';
+              loadVoterList();
+              loadCurrentData();
+            } catch (err) {
+              document.getElementById('voterListStatus').innerHTML = `<span class="error">❌ ${err.message}</span>`;
+            }
+          });
+        });
+      } catch (e) {
+        container.innerHTML = '<span style="color:#c62828;">Ошибка загрузки</span>';
+      }
+    }
 
     document.getElementById('startSessionBtn').addEventListener('click', async () => {
       const status = document.getElementById('sessionStatus');

@@ -8,6 +8,10 @@ let currentListener = null;
 
 const rootRef = firebase.database().ref('poll');
 
+function getLetter(i) {
+  return ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я'][i] || '?';
+}
+
 function getOptionsArray(data) {
   if (!data || !data.options) return [];
   if (Array.isArray(data.options)) return data.options.slice().sort((a, b) => a.id - b.id);
@@ -66,7 +70,6 @@ function updateChartData(data) {
   document.getElementById('totalVotes').textContent = total;
 
   const list = document.getElementById('resultsList');
-  const letters = ['А', 'Б', 'В', 'Г'];
   list.innerHTML = '';
   options.forEach((opt, i) => {
     const pct = total > 0 ? ((opt.votes / total) * 100).toFixed(1) : 0;
@@ -75,7 +78,7 @@ function updateChartData(data) {
     item.innerHTML = `
       <div class="result-bar" style="width:${pct}%;background:${getColor(i)}33"></div>
       <div class="result-text">
-        <span class="result-label">${letters[i]}. ${opt.text}</span>
+        <span class="result-label">${getLetter(i)}. ${opt.text}</span>
         <span class="result-stats">
           <span>${opt.votes} гол.</span>
           <span>${pct}%</span>
@@ -132,8 +135,7 @@ function renderVoterList(data) {
   const voters = data.voters || {};
   const options = getOptionsArray(data);
   const optText = {};
-  const letters = ['А', 'Б', 'В', 'Г'];
-  options.forEach((o, i) => { optText[o.id] = `${letters[i]}. ${o.text}`; });
+  options.forEach((o, i) => { optText[o.id] = `${getLetter(i)}. ${o.text}`; });
 
   const entries = Object.entries(voters);
   if (entries.length === 0) {
@@ -249,12 +251,22 @@ function loadClassList() {
     const select = document.getElementById('classSelect');
     if (!select) return;
     const keys = data ? Object.keys(data).filter(k => !RESERVED_KEYS.includes(k) && data[k] && data[k].question) : [];
-    select.innerHTML = '<option value="">— Выберите класс —</option>' + keys.map(k => `<option value="${k}">${k}</option>`).join('');
+    select.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join('');
+    if (keys.length > 0 && (!selectedClass || !keys.includes(selectedClass))) {
+      select.value = keys[0];
+      select.dispatchEvent(new Event('change'));
+    } else if (keys.length > 0) {
+      select.value = selectedClass;
+    }
   });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   loadClassList();
+
+  document.getElementById('refreshClassesBtn')?.addEventListener('click', () => {
+    loadClassList();
+  });
 
   document.getElementById('classSelect')?.addEventListener('change', e => {
     const val = e.target.value;
