@@ -203,7 +203,7 @@
 
     document.getElementById('addClassBtn').addEventListener('click', async () => {
       const input = document.getElementById('newClassInput');
-      const className = input.value.trim();
+      const className = input.value.trim().replace(/['"«»]/g, '').replace(/\s+/g, ' ');
       const status = document.getElementById('classStatus');
       if (!className) { status.innerHTML = '<span class="error">❌ Введите название класса</span>'; return; }
       try {
