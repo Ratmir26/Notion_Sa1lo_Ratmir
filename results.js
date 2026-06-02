@@ -201,7 +201,7 @@ function subscribeClass(classId) {
     const data = snapshot.val();
 
     if (!data) {
-      document.getElementById('questionTitle').textContent = '?? Нет данных';
+      document.getElementById('questionTitle').textContent = '?? пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ';
       document.getElementById('questionText').textContent = '';
       document.getElementById('resultsList').innerHTML = '';
       document.getElementById('totalVotes').textContent = '0';
@@ -275,10 +275,6 @@ function loadClassList() {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadClassList();
-
-  document.getElementById('refreshClassesBtn')?.addEventListener('click', () => {
-    loadClassList();
-  });
 
   document.getElementById('classSelect')?.addEventListener('change', e => {
     const val = e.target.value;
