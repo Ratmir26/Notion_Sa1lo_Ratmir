@@ -248,6 +248,16 @@
       status.innerHTML = '⏳ Удаление...';
       try {
         await rootRef.child(className).remove();
+        const verify = await rootRef.child(className).once('value');
+        if (verify.val() !== null) {
+          status.innerHTML = '⏳ Повторная попытка...';
+          await rootRef.child(className).set(null);
+          const verify2 = await rootRef.child(className).once('value');
+          if (verify2.val() !== null) {
+            status.innerHTML = '<span class="error">❌ Не удалось удалить класс. Проверьте подключение.</span>';
+            return;
+          }
+        }
         selectedClass = null;
         select.value = '';
         document.getElementById('seedStatus').innerHTML = '';
