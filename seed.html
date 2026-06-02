@@ -131,6 +131,38 @@
 
     const RESERVED_KEYS = ['question', 'options', 'totalVotes', 'voters', 'sessionId', 'timerEnd', 'pin'];
 
+    async function loadCurrentData() {
+      if (!selectedClass) return;
+      try {
+        const snap = await getClassRef().once('value');
+        const data = snap.val();
+        if (!data) return;
+        const timerEl = document.getElementById('currentTimer');
+        const pinEl = document.getElementById('currentPin');
+        const sessionEl = document.getElementById('currentSession');
+        if (data.timerEnd) {
+          timerEl.style.display = 'block';
+          timerEl.textContent = '⏱ Таймер до: ' + data.timerEnd;
+        } else {
+          timerEl.style.display = 'none';
+        }
+        if (data.pin) {
+          pinEl.style.display = 'block';
+          pinEl.textContent = '🔑 PIN: ' + data.pin;
+        } else {
+          pinEl.style.display = 'none';
+        }
+        if (data.sessionId) {
+          sessionEl.style.display = 'block';
+          sessionEl.textContent = '🎬 Сессия: ' + data.sessionId;
+        } else {
+          sessionEl.style.display = 'none';
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     async function loadClassList() {
       const select = document.getElementById('classSelect');
       const currentVal = select.value;
