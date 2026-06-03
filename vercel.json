@@ -1,9 +1,11 @@
 {
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/seed.html", "destination": "/admin/", "permanent": true },
+    { "source": "/seed", "destination": "/admin/", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/admin/:path*", "destination": "/admin/index.html" }
-  ],
-  "redirects": [
-    { "source": "/seed.html", "destination": "/admin/", "permanent": true }
   ]
 }
