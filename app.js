@@ -266,6 +266,7 @@ function hideNameError() {
 
 function showVotingAfterName() {
   hideNameInput();
+  if (currentData) setQuestionText(currentData.question);
   document.getElementById('content')?.classList.remove('hidden');
   document.getElementById('loadingState')?.classList.add('hidden');
   const msgBox = document.getElementById('messageBox');
@@ -297,35 +298,42 @@ function isPinVerified() {
   return localStorage.getItem(PIN_VERIFIED_PREFIX + fbSessionId) === 'true';
 }
 
+function setQuestionText(text) {
+  const el = document.getElementById('questionText');
+  if (el) el.textContent = text;
+}
+
 function initVoting(data) {
   currentData = data;
   document.getElementById('loadingState')?.classList.add('hidden');
 
-  const qEl = document.getElementById('questionText');
-  if (qEl) qEl.textContent = data.question;
-
   if (timerEndCache && Date.now() >= timerEndCache) {
+    setQuestionText(data.question);
     document.getElementById('content')?.classList.remove('hidden');
     showVotingClosed();
     return;
   }
 
   if (hasVotedLocally) {
+    setQuestionText(data.question);
     document.getElementById('content')?.classList.remove('hidden');
     showThankYou(data);
     return;
   }
 
   if (!voterName) {
+    setQuestionText('⏳ Подготовка к голосованию...');
     showNameInput();
     return;
   }
 
   if (currentPin && !isPinVerified()) {
+    setQuestionText('⏳ Подготовка к голосованию...');
     showPinInput();
     return;
   }
 
+  setQuestionText(data.question);
   showVotingAfterName();
 }
 
