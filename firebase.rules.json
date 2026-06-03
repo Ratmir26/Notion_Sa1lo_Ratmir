@@ -8,48 +8,48 @@
 
         "question": {
           ".read": true,
-          ".write": "auth.uid === ADMIN_UID"
+          ".write": "auth.uid === '0KzuBx7a9yToozCzB9mm2UIFsRu2'"
         },
 
         "options": {
           ".read": true,
-          ".write": "auth.uid === ADMIN_UID",
+          ".write": "auth.uid === '0KzuBx7a9yToozCzB9mm2UIFsRu2'",
           "$id": {
-            "text": { ".write": "auth.uid === ADMIN_UID" },
+            "text": { ".write": "auth.uid === '0KzuBx7a9yToozCzB9mm2UIFsRu2'" },
             "id": { ".write": false },
             "votes": {
-              ".write": "(auth.uid === ADMIN_UID && newData.isNumber()) || ((!data.exists() && newData.val() === 1) || (data.exists() && newData.val() === data.val() + 1))"
+              ".write": "(auth.uid === '0KzuBx7a9yToozCzB9mm2UIFsRu2' && newData.isNumber()) || ((!data.exists() && newData.val() === 1) || (data.exists() && newData.val() === data.val() + 1))"
             }
           }
         },
 
         "totalVotes": {
           ".read": true,
-          ".write": "(auth.uid === ADMIN_UID && newData.isNumber()) || ((!data.exists() && newData.val() === 1) || (data.exists() && newData.val() === data.val() + 1))"
+          ".write": "(auth.uid === '0KzuBx7a9yToozCzB9mm2UIFsRu2' && newData.isNumber()) || ((!data.exists() && newData.val() === 1) || (data.exists() && newData.val() === data.val() + 1))"
         },
 
         "voters": {
           ".read": true,
-          ".write": "auth.uid === ADMIN_UID",
+          ".write": "auth.uid === '0KzuBx7a9yToozCzB9mm2UIFsRu2'",
           "$fingerprint": {
-            ".write": "(!data.exists() && newData.exists()) || (auth.uid === ADMIN_UID && newData.val() === null)",
+            ".write": "(!data.exists() && newData.exists()) || (auth.uid === '0KzuBx7a9yToozCzB9mm2UIFsRu2' && newData.val() === null)",
             ".validate": "newData.isObject() && newData.hasChildren(['name', 'timestamp']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('timestamp').isNumber()"
           }
         },
 
         "sessionId": {
           ".read": true,
-          ".write": "auth.uid === ADMIN_UID"
+          ".write": "auth.uid === '0KzuBx7a9yToozCzB9mm2UIFsRu2'"
         },
 
         "timerEnd": {
           ".read": true,
-          ".write": "auth.uid === ADMIN_UID"
+          ".write": "auth.uid === '0KzuBx7a9yToozCzB9mm2UIFsRu2'"
         },
 
         "pin": {
           ".read": true,
-          ".write": "auth.uid === ADMIN_UID"
+          ".write": "auth.uid === '0KzuBx7a9yToozCzB9mm2UIFsRu2'"
         }
       }
     }
