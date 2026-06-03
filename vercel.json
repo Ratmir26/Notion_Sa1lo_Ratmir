@@ -1,8 +1,7 @@
 {
-  "cleanUrls": true,
   "redirects": [
-    { "source": "/seed.html", "destination": "/admin/", "permanent": true },
-    { "source": "/seed", "destination": "/admin/", "permanent": true }
+    { "source": "/seed.html", "destination": "/admin/", "permanent": false },
+    { "source": "/seed", "destination": "/admin/", "permanent": false }
   ],
   "rewrites": [
     { "source": "/admin", "destination": "/admin/index.html" },
@@ -10,11 +9,10 @@
   ],
   "headers": [
     {
-      "source": "/seed.*",
+      "source": "/seed(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, must-revalidate" },
-        { "key": "Pragma", "value": "no-cache" },
-        { "key": "Surrogate-Control", "value": "no-store" }
+        { "key": "Pragma", "value": "no-cache" }
       ]
     }
   ]
