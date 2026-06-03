@@ -1,4 +1,4 @@
-const CACHE = 'school-vote-v9';
+const CACHE = 'school-vote-v10';
 const ASSETS = [
   '/',
   '/index.html',

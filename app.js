@@ -72,7 +72,6 @@ async function checkRemoteVote() {
     if (snap.exists()) {
       hasVotedLocally = true;
       localStorage.setItem('voted', 'true');
-      userVoteOptionId = snap.val().optionId;
       return true;
     }
     return false;
@@ -96,7 +95,7 @@ async function castVote(optionId) {
   try {
     const updates = {};
     updates[`poll/${classId}/options/${optionId}/votes`] = firebase.database.ServerValue.increment(1);
-    updates[`poll/${classId}/voters/${fingerprint}`] = { name: voterName, optionId, timestamp: firebase.database.ServerValue.TIMESTAMP };
+    updates[`poll/${classId}/voters/${fingerprint}`] = { name: voterName, timestamp: firebase.database.ServerValue.TIMESTAMP };
     updates[`poll/${classId}/totalVotes`] = firebase.database.ServerValue.increment(1);
     await firebase.database().ref().update(updates);
 
@@ -184,7 +183,9 @@ function showThankYou(data) {
   }
   if (msgBox) {
     msgBox.classList.add('show');
-    msgBox.innerHTML = `<div class="thank-you">🎉</div><h2>Спасибо, ваш голос принят!</h2><p>Вы проголосовали за вариант <strong>${currentData ? findOptionText(userVoteOptionId, currentData) : ''}</strong></p><p style="margin-top:12px;font-size:14px;color:#888;">Всего проголосовало: <strong>${currentData ? (currentData.totalVotes || 0) : 0}</strong></p>`;
+    const optionText = currentData ? findOptionText(userVoteOptionId, currentData) : '';
+    const optionHtml = optionText ? `<p>Вы проголосовали за вариант <strong>${optionText}</strong></p>` : '';
+    msgBox.innerHTML = `<div class="thank-you">🎉</div><h2>Спасибо, ваш голос принят!</h2>${optionHtml}<p style="margin-top:12px;font-size:14px;color:#888;">Всего проголосовало: <strong>${currentData ? (currentData.totalVotes || 0) : 0}</strong></p>`;
   }
   if (grid) grid.style.display = 'none';
   if (statusBar) statusBar.style.display = 'block';
@@ -365,7 +366,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (fpVoter) {
           hasVotedLocally = true;
           localStorage.setItem('voted', 'true');
-          userVoteOptionId = fpVoter.optionId;
+          userVoteOptionId = null;
         }
         if (hasVotedLocally && !fpVoter) {
           hasVotedLocally = false;

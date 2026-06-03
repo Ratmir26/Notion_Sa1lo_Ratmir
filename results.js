@@ -123,9 +123,6 @@ function renderVoterList(data) {
   const container = document.getElementById('voterList');
   if (!container) return;
   const voters = data.voters || {};
-  const options = getOptionsArray(data);
-  const optText = {};
-  options.forEach((o, i) => { optText[o.id] = `${getLetter(i)}. ${o.text}`; });
 
   const entries = Object.entries(voters);
   if (entries.length === 0) {
@@ -139,8 +136,7 @@ function renderVoterList(data) {
     const item = document.createElement('div');
     item.className = 'voter-item';
     const name = v.name && v.name.trim() ? v.name : 'Аноним';
-    const optionLabel = optText[v.optionId] || '—';
-    item.innerHTML = `<span class="voter-name">${escapeHtml(name)}</span><span class="voter-option">${escapeHtml(optionLabel)}</span>`;
+    item.innerHTML = `<span class="voter-name">${escapeHtml(name)}</span><span class="voter-option" style="color:#4caf50;">✅</span>`;
     container.appendChild(item);
   });
 }

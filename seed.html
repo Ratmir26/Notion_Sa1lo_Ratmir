@@ -101,7 +101,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  <script src="firebase-config.js?v=9"></script>
+  <script src="firebase-config.js?v=10"></script>
   <script>
     setupGlobalErrorHandler();
     const rootRef = firebase.database().ref('poll');
@@ -352,12 +352,6 @@
       try {
         const snap = await getClassRef().child('voters').once('value');
         const voters = snap.val() || {};
-        const optSnap = await getClassRef().child('options').once('value');
-        const options = optSnap.val() || [];
-        const optText = {};
-        (Array.isArray(options) ? options : Object.values(options)).forEach((o, i) => {
-          optText[o.id] = `${getLetter(i)}. ${o.text}`;
-        });
         const entries = Object.entries(voters);
         if (entries.length === 0) {
           container.innerHTML = '<span style="color:#999;font-size:14px;">Нет избирателей</span>';
@@ -365,7 +359,7 @@
         }
         container.innerHTML = entries.map(([fp, v]) =>
           `<div class="voter-row">
-            <span><strong>${v.name || 'Аноним'}</strong> — ${optText[v.optionId] || '?'}</span>
+            <span><strong>${v.name || 'Аноним'}</strong> ✅</span>
             <button class="remove-voter-btn" data-fingerprint="${fp}">✕</button>
           </div>`
         ).join('');
@@ -373,14 +367,13 @@
           btn.addEventListener('click', async () => {
             const fp = btn.dataset.fingerprint;
             try {
-              const voterSnap = await getClassRef().child('voters/' + fp).once('value');
-              const voter = voterSnap.val();
-              if (!voter) { document.getElementById('voterListStatus').innerHTML = '<span class="error">❌ Избиратель уже удалён</span>'; return; }
-              if (!confirm(`Удалить избирателя ${voter.name || 'Аноним'}? Он сможет проголосовать снова.`)) return;
+              const nameSnap = await getClassRef().child('voters/' + fp + '/name').once('value');
+              const name = nameSnap.val();
+              if (!name) { document.getElementById('voterListStatus').innerHTML = '<span class="error">❌ Избиратель уже удалён</span>'; return; }
+              if (!confirm(`Удалить избирателя ${name}?\n\n⚠️ Счётчики вариантов НЕ изменятся (тайное голосование). Используйте «Сбросить все голоса» для пересчёта.`)) return;
               const updates = {};
-              updates[`options/${voter.optionId}/votes`] = firebase.database.ServerValue.increment(-1);
-              updates[`totalVotes`] = firebase.database.ServerValue.increment(-1);
               updates[`voters/${fp}`] = null;
+              updates[`totalVotes`] = firebase.database.ServerValue.increment(-1);
               await getClassRef().update(updates);
               document.getElementById('voterListStatus').innerHTML = '<span class="success">✅ Избиратель удалён</span>';
               loadVoterList();
