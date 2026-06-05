@@ -1,3 +1,4 @@
 .vercel
 .idea
 firebase.rules.json
+firebase-config.js
