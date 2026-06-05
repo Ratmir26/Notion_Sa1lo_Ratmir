@@ -2,54 +2,23 @@
   "rules": {
     "poll": {
       ".read": true,
-
       "$classId": {
         ".read": true,
-
-        "question": {
-          ".read": true,
-          ".write": "auth.uid === ADMIN_UID"
-        },
-
+        ".write": "auth != null && auth.uid === '0KzuBx7a9yToozCzB9mm2UIFsRu2'",
         "options": {
-          ".read": true,
-          ".write": "auth.uid === ADMIN_UID",
           "$id": {
-            "text": { ".write": "auth.uid === ADMIN_UID" },
-            "id": { ".write": false },
             "votes": {
-              ".write": "(auth.uid === ADMIN_UID && newData.isNumber()) || ((!data.exists() && newData.val() === 1) || (data.exists() && newData.val() === data.val() + 1))"
+              ".write": "!data.exists() && newData.val() === 1 || data.exists() && newData.val() === data.val() + 1"
             }
           }
         },
-
         "totalVotes": {
-          ".read": true,
-          ".write": "(auth.uid === ADMIN_UID && newData.isNumber()) || ((!data.exists() && newData.val() === 1) || (data.exists() && newData.val() === data.val() + 1))"
+          ".write": "!data.exists() && newData.val() === 1 || data.exists() && newData.val() === data.val() + 1"
         },
-
         "voters": {
-          ".read": true,
-          ".write": "auth.uid === ADMIN_UID",
           "$fingerprint": {
-            ".write": "(!data.exists() && newData.exists()) || (auth.uid === ADMIN_UID && newData.val() === null)",
-            ".validate": "newData.isObject() && newData.hasChildren(['name', 'timestamp']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('timestamp').isNumber()"
+            ".write": "!data.exists() && newData.exists()"
           }
-        },
-
-        "sessionId": {
-          ".read": true,
-          ".write": "auth.uid === ADMIN_UID"
-        },
-
-        "timerEnd": {
-          ".read": true,
-          ".write": "auth.uid === ADMIN_UID"
-        },
-
-        "pin": {
-          ".read": true,
-          ".write": "auth.uid === ADMIN_UID"
         }
       }
     }
