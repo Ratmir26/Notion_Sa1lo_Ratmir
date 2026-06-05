@@ -431,7 +431,11 @@ body.projector .qr-container:hover {
 
 @media (max-width: 480px) {
   .container {
-    padding: 16px;
+    padding: 16px 15px;
+  }
+
+  .options-grid {
+    padding: 0;
   }
 
   h1 {
@@ -439,8 +443,9 @@ body.projector .qr-container:hover {
   }
 
   .option-btn {
-    padding: 16px 20px;
-    font-size: 16px;
+    padding: 18px 20px;
+    font-size: 17px;
+    min-height: 60px;
   }
 
   body.projector h1 {

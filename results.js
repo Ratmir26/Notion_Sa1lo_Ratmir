@@ -54,7 +54,7 @@ function updateChartData(data) {
   if (!chart) return;
   const options = getOptionsArray(data);
   chart.data.datasets[0].data = options.map(o => o.votes);
-  chart.update('none');
+  chart.update();
 
   const total = data.totalVotes || 0;
   document.getElementById('totalVotes').textContent = total;
